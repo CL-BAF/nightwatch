@@ -126,9 +126,23 @@ public class TypingIndicator {
 
 ### Integration
 - NightwatchClient's scheduled queue holds Action with delay
-- When Action is due, if MESSAGE: show typing indicator, then send message after delay
-- Typing indicator uses action bar (not chat) to avoid spam
+- When Action is due, if MESSAGE: TypingIndicator.showThenSend(message) handles both the overlay preview and final chat line
+- Typing indicator uses sendOverlayMessage (26.3 API) for action bar, sendSystemMessage for chat
 - Delay is randomized (1-3s) to feel natural
+- **Fabric integration point**: NightwatchClient.java line ~99 (case MESSAGE) calls typingIndicator.showThenSend(action.message()) instead of direct sendSystemMessage
+
+### Fabric Integration Contract
+```java
+// In NightwatchClient.java:
+// 1. Field declaration (after VoiceInput field):
+private TypingIndicator typingIndicator;
+
+// 2. onInitializeClient() after Director construction:
+typingIndicator = new TypingIndicator(Minecraft.getInstance());
+
+// 3. MESSAGE delivery (replace case MESSAGE ->):
+case MESSAGE -> typingIndicator.showThenSend(action.message());
+```
 
 ## 3. Bounded World Memory
 
@@ -199,6 +213,11 @@ public class WorldMemory {
 - Director calls `memory.remember()` for significant events
 - WorldMemory is loaded on world join, saved on world leave
 - Chat commands `/nightwatch memory delete` and `/nightwatch memory reset` trigger delete/reset
+- **Fabric integration points**:
+  - Field declaration: `private WorldMemory worldMemory;`
+  - World change (after director.reset()): `worldMemory = new WorldMemory(configDir, worldId, settings.memoryEnabled());`
+  - Chat events: `worldMemory.remember("player", message)` and `worldMemory.remember("voice", words)`
+  - Entity messages: `worldMemory.remember("entity", action.message())`
 
 ## 4. Transcript Privacy
 
@@ -273,6 +292,12 @@ public class NightwatchCommands {
 - Commands are client-side only (singleplayer)
 - Commands require op level 0 (any player can use)
 - Commands are registered in NightwatchClient.onInitializeClient()
+- **Fabric integration points**:
+  - Registration: `NightwatchCommands.register()` in onInitializeClient()
+  - World change: `NightwatchCommands.setWorldMemory(worldMemory)` after WorldMemory initialization
+  - Uses ClientCommandRegistrationCallback.EVENT (26.3 Fabric API)
+  - Command source type: FabricClientCommandSource (not SharedSuggestionProvider)
+  - Command builder: ClientCommands.literal() (not ClientCommandManager.literal())
 
 ## 6. Implementation Order
 

@@ -5,7 +5,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Properties;
 
-public record Settings(boolean aiEnabled, boolean microphoneEnabled, String model) {
+public record Settings(boolean aiEnabled, boolean microphoneEnabled, boolean memoryEnabled, String model) {
     public static Settings load(Path configDir) {
         Path file = configDir.resolve("nightwatch.properties");
         Properties props = new Properties();
@@ -16,6 +16,8 @@ public record Settings(boolean aiEnabled, boolean microphoneEnabled, String mode
                 props.setProperty("ai.model", "qwen3:4b");
                 props.setProperty("microphone.enabled", "false");
                 props.setProperty("microphone.note", "Start voice/sidecar.py before enabling; audio stays on your machine.");
+                props.setProperty("memory.enabled", "false");
+                props.setProperty("memory.note", "Opt-in world memory. Stores up to 50 sanitized entries per world.");
                 try (var out = Files.newOutputStream(file)) { props.store(out, "Nightwatch settings; restart Minecraft after changing"); }
             }
             try (var in = Files.newInputStream(file)) { props.load(in); }
@@ -24,6 +26,7 @@ public record Settings(boolean aiEnabled, boolean microphoneEnabled, String mode
         }
         return new Settings(Boolean.parseBoolean(props.getProperty("ai.enabled", "true")),
             Boolean.parseBoolean(props.getProperty("microphone.enabled", "false")),
+            Boolean.parseBoolean(props.getProperty("memory.enabled", "false")),
             props.getProperty("ai.model", "qwen3:4b"));
     }
 }
