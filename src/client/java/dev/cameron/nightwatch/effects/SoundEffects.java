@@ -35,18 +35,18 @@ public final class SoundEffects {
             }
             case "door_knock" -> {
                 double[] at = distant(client, 6.0);
-                level.playLocalSound(at[0], at[1], at[2], SoundEvents.WOODEN_BUTTON_CLICK_ON, SoundSource.BLOCKS, 0.3f, 0.85f, false);
+                level.playLocalSound(at[0], at[1], at[2], SoundEvents.WOODEN_BUTTON_CLICK_ON, SoundSource.BLOCKS, 0.5f, 0.85f, false);
             }
             case "whisper" ->
                 level.playLocalSound(eye.x, eye.y, eye.z, SoundEvents.PLAYER_BREATH, SoundSource.AMBIENT, 0.25f, 0.6f, false);
             case "lantern_dip" -> lanternDip(client);
             case "door_open" -> {
                 double[] at = distant(client, 5.0);
-                level.playLocalSound(at[0], at[1], at[2], SoundEvents.WOODEN_DOOR_OPEN, SoundSource.BLOCKS, 0.3f, 0.9f, false);
+                level.playLocalSound(at[0], at[1], at[2], SoundEvents.WOODEN_DOOR_OPEN, SoundSource.BLOCKS, 0.4f, 0.9f, false);
             }
             case "door_close" -> {
                 double[] at = distant(client, 5.0);
-                level.playLocalSound(at[0], at[1], at[2], SoundEvents.WOODEN_DOOR_CLOSE, SoundSource.BLOCKS, 0.3f, 0.9f, false);
+                level.playLocalSound(at[0], at[1], at[2], SoundEvents.WOODEN_DOOR_CLOSE, SoundSource.BLOCKS, 0.4f, 0.9f, false);
             }
             default -> { }
         }
