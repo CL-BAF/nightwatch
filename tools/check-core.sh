@@ -5,6 +5,7 @@ trap 'rm -rf "$check_dir"' EXIT
 javac -d "$check_dir" \
     src/client/java/dev/cameron/nightwatch/engine/Action.java \
     src/client/java/dev/cameron/nightwatch/engine/Director.java \
+    src/client/java/dev/cameron/nightwatch/engine/Personality.java \
     src/client/java/dev/cameron/nightwatch/engine/Provider.java \
     src/client/java/dev/cameron/nightwatch/engine/RuleWriter.java \
     src/client/java/dev/cameron/nightwatch/engine/Scene.java \
