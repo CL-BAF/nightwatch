@@ -2,8 +2,12 @@ package dev.cameron.nightwatch.entity;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.server.IntegratedServer;
+import net.minecraft.core.BlockPos;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.EntitySpawnReason;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 
@@ -29,14 +33,20 @@ public final class WatcherSpawner {
         return true;
     }
 
+    /** Spawns into the PLAYER'S CURRENT dimension (not always the overworld) and snaps to the
+     * terrain surface at that column so the cue is never buried or in the wrong world. */
     public static void spawnAt(Minecraft client, Vec3 position) {
         IntegratedServer server = client.getSingleplayerServer();
-        if (server == null) return;
+        if (server == null || client.player == null) return;
+        ResourceKey<Level> dimension = client.player.level().dimension();
         server.execute(() -> {
-            ServerLevel level = server.overworld();
+            ServerLevel level = server.getLevel(dimension);
+            if (level == null) return;
             WatcherEntity watcher = NightwatchEntities.WATCHER.create(level, EntitySpawnReason.TRIGGERED);
             if (watcher == null) return;
-            watcher.snapTo(position.x, position.y, position.z, 0.0F, 0.0F);
+            BlockPos column = BlockPos.containing(position.x, position.y, position.z);
+            int surfaceY = level.getHeight(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, column.getX(), column.getZ());
+            watcher.snapTo(position.x, surfaceY, position.z, 0.0F, 0.0F);
             level.addFreshEntity(watcher);
         });
     }

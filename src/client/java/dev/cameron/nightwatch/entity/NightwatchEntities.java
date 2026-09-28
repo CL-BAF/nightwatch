@@ -1,7 +1,6 @@
 package dev.cameron.nightwatch.entity;
 
 import dev.cameron.nightwatch.model.WatcherModel;
-import net.fabricmc.fabric.api.client.rendering.v1.EntityRendererRegistry;
 import net.fabricmc.fabric.api.client.rendering.v1.ModelLayerRegistry;
 import net.fabricmc.fabric.api.object.builder.v1.entity.FabricDefaultAttributeRegistry;
 import net.minecraft.core.Registry;
@@ -53,6 +52,6 @@ public final class NightwatchEntities {
     /** Client-side registration (model layer + renderer). Call from the client initialiser. */
     public static void registerClient() {
         ModelLayerRegistry.registerModelLayer(WatcherModel.LAYER, WatcherModel::createBodyLayer);
-        EntityRendererRegistry.register(WATCHER, WatcherRenderer::new);
+        RendererRegistration.register();
     }
 }
