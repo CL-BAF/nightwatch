@@ -5,7 +5,7 @@ Status: DRAFT v1 (2026-09-29). This consolidates every DEFERRED in-game verifica
 ## Pre-flight (operator, once)
 
 1. Set `JAVA_HOME=C:\Users\Cameron\AppData\Roaming\PrismLauncher\java\java-runtime-epsilon` for any gradle/sidecar shell (`java -version` → 25.0.1).
-2. Build the CURRENT HEAD: `.\gradlew.bat build` → jar in `build\libs\nightwatch-0.1.0.jar`. Only test a jar built AFTER the check-core gate is green again (it was red at 33595f4 — Runtime's fix pending).
+2. Build the CURRENT HEAD: `.\gradlew.bat build` → jar in `build\libs\nightwatch-0.1.0.jar`. Gate status: check-core has been green since 9b18a2c (engine glob + all three checks); verify it is still green on the tree you build from.
 3. Verify `bash tools/check-core.sh` (JAVA_HOME set) prints all three checks passing on the tree you built from.
 4. Optional legs need: Ollama running with `qwen3:4b` (or set `ai.model`) — OR set `ai.enabled=false` to force the offline RuleWriter for deterministic pacing tests. Mic legs need: `python voice\sidecar.py` (venv with `pip install -r voice\requirements.txt`) + `microphone.enabled=true` in the profile's `config\nightwatch.properties`.
 5. Fresh singleplayer world, survival, normal difficulty, daylight start. Keep the world tab-list OPEN during Stage 2 checks.
