@@ -40,6 +40,9 @@ public class WatcherRenderer extends LivingEntityRenderer<WatcherEntity, LivingE
     public void extractRenderState(WatcherEntity entity, LivingEntityRenderState state, float partialTick) {
         super.extractRenderState(entity, state, partialTick);
         this.model.setSeen(isLookedAt(entity));
+        this.model.setVanishing(entity.isVanishing()
+            ? Math.min(1.0F, entity.vanishTicks() / (float) WatcherEntity.SINK_TICKS)
+            : 0.0F);
         feedMotion(entity);
     }
 

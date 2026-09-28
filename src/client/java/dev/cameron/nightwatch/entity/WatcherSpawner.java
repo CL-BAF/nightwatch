@@ -62,14 +62,16 @@ public final class WatcherSpawner {
         });
     }
 
-    /** Discards every Watcher across every dimension. Used on the 6s lifetime and on world leave. */
+    /** Begins the sink on every Watcher across every dimension; each discards itself after
+     * WatcherEntity.SINK_TICKS. Used on the 6s lifetime and on world leave (noSave means an
+     * un-ticked level can never persist one). */
     public static void vanishAll(Minecraft client) {
         IntegratedServer server = client.getSingleplayerServer();
         if (server == null) return;
         server.execute(() -> {
             for (ServerLevel level : server.getAllLevels()) {
                 for (WatcherEntity watcher : level.getEntitiesOfClass(WatcherEntity.class, EVERYWHERE)) {
-                    watcher.discard();
+                    watcher.beginVanish();
                 }
             }
         });
