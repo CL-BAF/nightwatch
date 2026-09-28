@@ -12,7 +12,8 @@ import net.minecraft.world.phys.Vec3;
  * decides, and server relocation stays in LoomTeleportHandler.
  *
  * <p>Ghost placements: door 6.5 blocks ahead at door_appear; echo copycat 8 ahead, diverger
- * 12 ahead + 6 left (the forbidden path), facing 5 ahead at eye height. Null echo = none live.
+ * 12 ahead + 6 left (the forbidden path), facing 5 ahead, facing-closer 3 ahead (both at eye
+ * height). Null echo = none live.
  */
 public final class LoomObservations {
     private static final Vec3 LOOM_FRAME_CENTER = new Vec3(0.5, -61.0, 0.5);
@@ -90,6 +91,7 @@ public final class LoomObservations {
             case "copycat" -> ahead(client, 8.0, 0.0, 0.0);
             case "diverger" -> ahead(client, 12.0, 6.0, 0.0);
             case "facing" -> ahead(client, 5.0, 0.0, 0.0);
+            case "facing-closer" -> ahead(client, 3.0, 0.0, 0.0);
             default -> null;
         };
     }
