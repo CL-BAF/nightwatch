@@ -34,6 +34,10 @@ public final class WatcherModel extends EntityModel<LivingEntityRenderState> {
     private final ModelPart legLeft;
     private final ModelPart legRight;
     private boolean seen;
+    private float targetForward;
+    private float targetStrafe;
+    private float lagForward;
+    private float lagStrafe;
 
     public WatcherModel(ModelPart root) {
         super(root);
@@ -117,6 +121,15 @@ public final class WatcherModel extends EntityModel<LivingEntityRenderState> {
         this.seen = seen;
     }
 
+    /**
+     * Velocity feed for lagged follow-through (canon: movements out of sync).
+     * Fabric calls this from extractRenderState; may be omitted (defaults to 0).
+     */
+    public void setMotion(float forward, float strafe) {
+        this.targetForward = forward;
+        this.targetStrafe = strafe;
+    }
+
     @Override
     public void setupAnim(LivingEntityRenderState state) {
         super.setupAnim(state);
@@ -134,5 +147,14 @@ public final class WatcherModel extends EntityModel<LivingEntityRenderState> {
         this.legRight.xRot = (float) Math.sin(t * 0.8F + 1.7F) * 0.015F;
         this.threadShoulder.xRot = (float) Math.sin(t * 1.3F + 2.6F) * 0.06F;
         this.threadAnkle.xRot = (float) Math.sin(t * 1.1F + 0.9F) * 0.06F;
+        // Lagged follow-through: the form trails its own motion, eased, so it
+        // never moves as one creature. Arms lag most (loose ends trail).
+        this.lagForward += (this.targetForward - this.lagForward) * 0.12F;
+        this.lagStrafe += (this.targetStrafe - this.lagStrafe) * 0.12F;
+        this.torso.xRot += this.lagForward * 0.15F;
+        this.torso.zRot = this.lagStrafe * 0.1F;
+        this.armLeft.xRot += this.lagForward * 0.25F;
+        this.armRight.xRot += this.lagForward * 0.2F;
+        this.head.yRot += this.lagStrafe * 0.2F;
     }
 }
