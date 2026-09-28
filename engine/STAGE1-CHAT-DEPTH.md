@@ -104,25 +104,25 @@ public class TypingIndicator {
     private final Random random = new Random();
     
     public void showThenSend(String message, int delaySeconds) {
-        // Show typing indicator
-        client.player.displayClientMessage(
-            Component.literal("<...> is typing...").withStyle(ChatFormatting.GRAY),
-            true  // action bar
+        // Show typing indicator in action bar (26.3 API)
+        client.player.sendOverlayMessage(
+            Component.literal("<...> is typing...").withStyle(ChatFormatting.GRAY)
         );
         
         // Wait 1-3 seconds (simulated typing)
         int typingDuration = 1000 + random.nextInt(2000);
         CompletableFuture.delayedExecutor(typingDuration, TimeUnit.MILLISECONDS)
             .execute(() -> client.execute(() -> {
-                // Send final message
-                client.player.displayClientMessage(
-                    Component.literal("<...> " + message),
-                    false  // chat
+                // Send final message to chat (26.3 API)
+                client.player.sendSystemMessage(
+                    Component.literal("<...> " + message)
                 );
             }));
     }
 }
 ```
+
+**26.3 API note:** `displayClientMessage` does not exist in 26.3. Use `sendOverlayMessage(Component)` for action-bar/overlay messages, and `sendSystemMessage(Component)` for chat messages.
 
 ### Integration
 - NightwatchClient's scheduled queue holds Action with delay
