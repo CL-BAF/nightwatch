@@ -17,6 +17,8 @@ final class LightSources {
         BlockPos nearest = null;
         double best = Double.MAX_VALUE;
         for (BlockPos pos : BlockPos.betweenClosed(min, max)) {
+            int light = client.level.getBlockState(pos).getLightEmission();
+            if (light <= 0) continue;
             if (!isLight(client.level.getBlockState(pos))) continue;
             double dx = pos.getX() - center.getX();
             double dy = pos.getY() - center.getY();
@@ -25,6 +27,7 @@ final class LightSources {
             if (distance < best) {
                 best = distance;
                 nearest = pos.immutable();
+                if (distance == 0.0) break;
             }
         }
         return nearest;

@@ -30,23 +30,23 @@ public final class SoundEffects {
         Vec3 eye = client.player.getEyePosition();
         switch (soundId) {
             case "footstep_distant" -> {
-                double[] at = distant(client, 9.0);
+                double[] at = behind(client, 30.0);
                 level.playLocalSound(at[0], at[1], at[2], SoundEvents.GRAVEL_STEP, SoundSource.BLOCKS, 0.25f, 0.6f, false);
             }
             case "door_knock" -> {
                 double[] at = distant(client, 6.0);
-                level.playLocalSound(at[0], at[1], at[2], SoundEvents.WOODEN_BUTTON_CLICK_ON, SoundSource.BLOCKS, 0.5f, 0.85f, false);
+                level.playLocalSound(at[0], at[1], at[2], SoundEvents.WOODEN_BUTTON_CLICK_ON, SoundSource.BLOCKS, 0.3f, 0.85f, false);
             }
             case "whisper" ->
-                level.playLocalSound(eye.x, eye.y, eye.z, SoundEvents.PLAYER_BREATH, SoundSource.AMBIENT, 0.3f, 0.6f, false);
+                level.playLocalSound(eye.x, eye.y, eye.z, SoundEvents.PLAYER_BREATH, SoundSource.AMBIENT, 0.25f, 0.6f, false);
             case "lantern_dip" -> lanternDip(client);
             case "door_open" -> {
                 double[] at = distant(client, 5.0);
-                level.playLocalSound(at[0], at[1], at[2], SoundEvents.WOODEN_DOOR_OPEN, SoundSource.BLOCKS, 0.4f, 0.9f, false);
+                level.playLocalSound(at[0], at[1], at[2], SoundEvents.WOODEN_DOOR_OPEN, SoundSource.BLOCKS, 0.3f, 0.9f, false);
             }
             case "door_close" -> {
                 double[] at = distant(client, 5.0);
-                level.playLocalSound(at[0], at[1], at[2], SoundEvents.WOODEN_DOOR_CLOSE, SoundSource.BLOCKS, 0.4f, 0.9f, false);
+                level.playLocalSound(at[0], at[1], at[2], SoundEvents.WOODEN_DOOR_CLOSE, SoundSource.BLOCKS, 0.3f, 0.9f, false);
             }
             default -> { }
         }
@@ -76,5 +76,15 @@ public final class SoundEffects {
         RandomSource random = client.player.getRandom();
         double angle = random.nextDouble() * Math.PI * 2.0;
         return new double[] { eye.x + Math.cos(angle) * distance, eye.y, eye.z + Math.sin(angle) * distance };
+    }
+
+    /** ~30 blocks directly behind the player, per design docs: footsteps where nothing can be seen. */
+    private static double[] behind(Minecraft client, double distance) {
+        Vec3 eye = client.player.getEyePosition();
+        Vec3 view = client.player.getViewVector(1.0f);
+        Vec3 flat = new Vec3(view.x, 0.0, view.z);
+        if (flat.lengthSqr() < 1.0E-6) flat = new Vec3(0.0, 0.0, 1.0);
+        Vec3 dir = flat.normalize().scale(-distance);
+        return new double[] { eye.x + dir.x, eye.y, eye.z + dir.z };
     }
 }
