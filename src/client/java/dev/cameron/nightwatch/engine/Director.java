@@ -9,7 +9,7 @@ import java.util.function.Consumer;
 
 /** Pure gameplay policy: silence, pacing, context and bounded memory. */
 public final class Director {
-    public interface Writer { CompletableFuture<Action> decide(String situation, Scene scene, String memory); }
+    public interface Writer { CompletableFuture<Action> decide(String situation, Scene scene, String memory, Personality personality); }
 
     private final Writer writer;
     private final Random random;
@@ -22,12 +22,18 @@ public final class Director {
     private boolean briefSightingUsed;
     private boolean pending;
     private int generation;
+    private Personality personality;
 
     public Director(Writer writer, Random random, Consumer<Runnable> mainThread, Consumer<Action> deliver) {
         this.writer = writer;
         this.random = random;
         this.mainThread = mainThread;
         this.deliver = deliver;
+        this.personality = Personality.forWorld("overworld");
+    }
+
+    public void setPersonality(Personality personality) {
+        this.personality = personality;
     }
 
     public void reset(long now) {
@@ -64,7 +70,7 @@ public final class Director {
     private void request(String situation, Scene scene, long requestTime) {
         pending = true;
         int requestedGeneration = generation;
-        writer.decide(situation, scene, String.join(" | ", memory))
+        writer.decide(situation, scene, String.join(" | ", memory), personality)
             .exceptionally(error -> Action.silence())
             .thenAccept(action -> mainThread.accept(() -> {
                 if (generation != requestedGeneration) return;

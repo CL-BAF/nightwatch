@@ -8,7 +8,7 @@ public final class RuleWriter implements Director.Writer {
     private final java.util.Random random = new java.util.Random();
 
     @Override
-    public CompletableFuture<Action> decide(String situation, Scene scene, String memory) {
+    public CompletableFuture<Action> decide(String situation, Scene scene, String memory, Personality personality) {
         String lower = situation.toLowerCase(Locale.ROOT);
         if (lower.contains("leave me alone") || lower.contains("stop")) {
             return CompletableFuture.completedFuture(Action.message("okay", 5));
