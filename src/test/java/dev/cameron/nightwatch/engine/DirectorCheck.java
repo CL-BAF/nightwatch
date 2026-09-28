@@ -118,6 +118,35 @@ public final class DirectorCheck {
         if (!loomPersonality.equals(overworldPersonality))
             throw new AssertionError("Loom should inherit Overworld personality");
 
+        // Test 4: Loom chat suppression integration test
+        // Verify MESSAGE actions are suppressed in the Loom
+        Scene loomScene = new Scene("Cam", "void", "nightwatch:loom", "nothing", false, false, 15, "loom");
+        director.reset(700_000); // Past the 600s floor
+        int messageCountBefore = output.size();
+        // Call hear() at 850_000ms to pass the 150s cooldown (700_000 + 150_000 = 850_000)
+        director.hear("hello?", false, loomScene, 850_000);
+        // MESSAGE should be suppressed (not delivered)
+        if (output.size() != messageCountBefore)
+            throw new AssertionError("MESSAGE actions should be suppressed in the Loom");
+
+        // Test 5: EFFECT actions are NOT suppressed in the Loom
+        // This is critical for door_appear and other Loom sequence effects
+        Director.Writer effectWriter = (situation, scn, mem, personality) -> {
+            return CompletableFuture.completedFuture(Action.effect("door_appear", 5));
+        };
+        Director effectDirector = new Director(effectWriter, new Random() {
+            @Override public double nextDouble() { return 0.0; }
+        }, Runnable::run, output::add);
+        effectDirector.reset(700_000); // Past the 600s floor
+        int effectCountBefore = output.size();
+        // Call hear() at 850_000ms to pass the 150s cooldown (700_000 + 150_000 = 850_000)
+        effectDirector.hear("hello?", false, loomScene, 850_000);
+        // EFFECT should be delivered (not suppressed)
+        if (output.size() == effectCountBefore)
+            throw new AssertionError("EFFECT actions should NOT be suppressed in the Loom");
+        if (output.get(output.size() - 1).kind() != Action.Kind.EFFECT)
+            throw new AssertionError("Last action should be an EFFECT");
+
         System.out.println("DirectorCheck passed");
     }
 
