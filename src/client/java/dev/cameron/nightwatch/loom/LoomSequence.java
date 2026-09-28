@@ -75,13 +75,13 @@ public final class LoomSequence {
     private void atFacingEcho(Input input) {
         if (input == Input.WALKED_BACK) { backToDoor(); return; }
         if (input == Input.IDLE_CYCLE) { // the promised forced routing: refusing to choose still exits
-            if (++idleCycles >= 2) { idleCycles = 0; standTicks = 0; through("released", "standing"); }
+            if (++idleCycles >= 2) { idleCycles = 0; standTicks = 0; through("released", "facing"); }
             return;
         }
         idleCycles = 0;
         switch (input) {
-            case CHOSE_LOOK_AWAY -> through("let past", "looking-past");
-            case CHOSE_APPROACH -> through("scatter", "scatter");
+            case CHOSE_LOOK_AWAY -> through("let past", "facing");
+            case CHOSE_APPROACH -> through("scatter", "facing");
             case CHOSE_STAND_STILL -> { stage = Stage.ECHO_FACING; emit(CueKind.ECHO_SPAWN, "facing-closer"); status = "standing"; }
             case MOVED -> { stage = Stage.ECHO_COPYCAT; emit(CueKind.ECHO_SPAWN, "copycat"); standTicks = 0; }
             case STOPPED -> {
