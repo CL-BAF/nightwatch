@@ -101,6 +101,23 @@ public final class DirectorCheck {
         if (briefSightingUsed)
             throw new AssertionError("briefSightingUsed should be false after reset");
 
+        // Test 3: Loom dimension chat suppression
+        // Verify Personality correctly identifies the Loom
+        if (!Personality.isLoom("nightwatch:loom"))
+            throw new AssertionError("isLoom() should return true for nightwatch:loom");
+        if (Personality.isLoom("overworld"))
+            throw new AssertionError("isLoom() should return false for overworld");
+        // Verify chat suppression is enabled for the Loom
+        if (!Personality.shouldSuppressChat("nightwatch:loom"))
+            throw new AssertionError("shouldSuppressChat() should return true for nightwatch:loom");
+        if (Personality.shouldSuppressChat("overworld"))
+            throw new AssertionError("shouldSuppressChat() should return false for overworld");
+        // Verify Loom inherits Overworld personality
+        Personality loomPersonality = Personality.forWorld("nightwatch:loom");
+        Personality overworldPersonality = Personality.forWorld("overworld");
+        if (!loomPersonality.equals(overworldPersonality))
+            throw new AssertionError("Loom should inherit Overworld personality");
+
         System.out.println("DirectorCheck passed");
     }
 

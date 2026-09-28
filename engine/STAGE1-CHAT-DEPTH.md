@@ -4,6 +4,22 @@
 
 Stage 1 extends the Director's chat capabilities with per-world personality, typing illusion, and bounded world memory. All features remain client-side, singleplayer, privacy-preserving.
 
+## 0. Operator Canon (binding)
+
+The presence behind everything is **THE UNRAVELLER** — never seen whole; monsters are parts pushing through; dead echoes are versions of the player it tried to pull apart. Core feeling: "it knows which version of you survives, and it's trying to make that stop being true."
+
+### Voice rules
+- The chat presence is the Unraveller pressing close, or its instrument — it **never explains itself, never names itself in Stage 1**. Implication only.
+- Line candidates + personality profiles must serve the core feeling with restraint.
+- Occasional version/thread-adjacent ambiguity is allowed ("that one lasted longer" register), BUT the binding rule stands — chat may never invent player actions or claim unobserved facts.
+- Mythology lines must be non-factual/poetic and RARE; observational lines stay grounded in Scene data.
+
+### Hard bans (all writer paths)
+- No named Lovecraft entities
+- No "Cthulhu"-adjacent vocabulary (e.g., "eldritch", "non-Euclidean", "cyclopean")
+- No boss framing (e.g., "the final darkness", "the ancient one")
+- These bans are enforced in LocalWriter prompt constraints + validation where cheap.
+
 ## 1. Per-World Personality
 
 ### Design
@@ -14,6 +30,25 @@ Each world/dimension gets a consistent personality profile that influences the D
 - **Verbosity**: sparse, moderate, chatty (default: sparse)
 - **Observation focus**: environment, player, both (default: both)
 
+### Loom Dimension Handling
+The Loom (`nightwatch:loom`) is a pocket dimension belonging to the player's home world, not a separate world. Per Loom's design advisory:
+- **Personality inheritance**: When `dimension == nightwatch:loom`, inherit the home world's personality instance (currently defaults to Overworld personality)
+- **Chat suppression**: Entity chat is suppressed in the Loom — the Unraveller is at work there, and silence reads heavier per canon
+- **Only sequence prompts**: Only the Loom sequence's own STATUS/actionbar prompts should appear; no Director-initiated chat
+
+Implementation:
+```java
+public static boolean isLoom(String dimension) {
+    return "nightwatch:loom".equals(dimension);
+}
+
+public static boolean shouldSuppressChat(String dimension) {
+    return isLoom(dimension);
+}
+```
+
+The Director checks `Personality.shouldSuppressChat(scene.dimension())` before delivering MESSAGE actions.
+
 ### Implementation
 ```java
 public record Personality(String tone, Verbosity verbosity, ObservationFocus focus) {
@@ -21,12 +56,24 @@ public record Personality(String tone, Verbosity verbosity, ObservationFocus foc
     public enum ObservationFocus { ENVIRONMENT, PLAYER, BOTH }
     
     public static Personality forWorld(String dimension) {
+        // Loom is a pocket dimension of the home world; inherit Overworld personality
+        if (isLoom(dimension)) {
+            return new Personality("eerie", Verbosity.SPARSE, ObservationFocus.BOTH);
+        }
         return switch (dimension) {
             case "overworld" -> new Personality("eerie", Verbosity.SPARSE, ObservationFocus.BOTH);
             case "the_nether" -> new Personality("oppressive", Verbosity.SPARSE, ObservationFocus.ENVIRONMENT);
             case "the_end" -> new Personality("distant", Verbosity.SPARSE, ObservationFocus.PLAYER);
             default -> new Personality("eerie", Verbosity.SPARSE, ObservationFocus.BOTH);
         };
+    }
+    
+    public static boolean isLoom(String dimension) {
+        return "nightwatch:loom".equals(dimension);
+    }
+    
+    public static boolean shouldSuppressChat(String dimension) {
+        return isLoom(dimension);
     }
 }
 ```

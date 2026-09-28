@@ -9,12 +9,33 @@ public record Personality(String tone, Verbosity verbosity, ObservationFocus foc
     public enum ObservationFocus { ENVIRONMENT, PLAYER, BOTH }
 
     public static Personality forWorld(String dimension) {
+        // Loom is a pocket dimension of the home world; inherit Overworld personality
+        if (isLoom(dimension)) {
+            return new Personality("eerie", Verbosity.SPARSE, ObservationFocus.BOTH);
+        }
         return switch (dimension) {
             case "overworld" -> new Personality("eerie", Verbosity.SPARSE, ObservationFocus.BOTH);
             case "the_nether" -> new Personality("oppressive", Verbosity.SPARSE, ObservationFocus.ENVIRONMENT);
             case "the_end" -> new Personality("distant", Verbosity.SPARSE, ObservationFocus.PLAYER);
             default -> new Personality("eerie", Verbosity.SPARSE, ObservationFocus.BOTH);
         };
+    }
+
+    /**
+     * Check if the dimension is the Loom (nightwatch:loom).
+     * The Loom is a pocket dimension belonging to the player's home world.
+     */
+    public static boolean isLoom(String dimension) {
+        return "nightwatch:loom".equals(dimension);
+    }
+
+    /**
+     * Check if entity chat should be suppressed in this dimension.
+     * In the Loom, the Unraveller is at work; silence reads heavier per canon.
+     * Only the sequence's own STATUS/actionbar prompts should appear.
+     */
+    public static boolean shouldSuppressChat(String dimension) {
+        return isLoom(dimension);
     }
 
     /**

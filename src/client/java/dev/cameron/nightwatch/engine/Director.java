@@ -83,6 +83,8 @@ public final class Director {
                         if (briefSightingUsed) return;
                         briefSightingUsed = true;
                     }
+                    // Suppress entity chat in dimensions where silence reads heavier (e.g., the Loom)
+                    if (action.kind() == Action.Kind.MESSAGE && Personality.shouldSuppressChat(scene.dimension())) return;
                     if (action.kind() == Action.Kind.MESSAGE) {
                         remember("entity: " + action.message());
                     }
