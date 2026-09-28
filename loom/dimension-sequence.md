@@ -88,6 +88,14 @@ The Director's memory applies these here for later pacing (Runtime coordinates: 
 
 Anything not on this list is rejected by the same closed-allowlist validation the engine already uses for text — no arbitrary IDs.
 
+## Hook data-source contract (answers Fabric 2026-09-29; belongs alongside the LoomIntegration spec)
+
+- `doorTriggered()` (overworld): the pale door is an effect-rendered ghost whose position VisualEffects fixes at spawn time — see it fixed **5–8 blocks in front of the player's facing** at `door_appear` time, and store that Vec3 in the hook. Trigger = player right-clicks while the ghost position is within 2.5 blocks of the crosshair hit/ray (or within 1.5 blocks of the position) — player-chosen, not time-forced.
+- `frameTriggered()` (Loom side): the exit frame is at the server-constant door center `Vec3(0.5,-61,0.5)` in the Loom (same constants as LoomTeleportHandler). Trigger = player position within 1.2 blocks of the center, debounced client-side ≥1.5s (the bridge already debounces its side).
+- `echoPos()` (Loom side): VisualEffects places the echo on `echo_spawn` deterministically: copycat ≈ 8 blocks ahead of the player's facing; diverger ≈ 12 ahead + 6 left (the forbidden side path); facing = exactly 5 ahead at eye height (reach check needs true distance to <= 2.5). Return Vec3, or null when no echo is live (drives FACING_ECHO discovery).
+- `crosshairAtEcho()`: camera look vector vs direction to echo within ~5° and echo within ~20 blocks — "looking at it" for the look-away decision.
+- `status()` — recommendation: action bar (displayClientMessage with overlay=true), not a chat line: TEXT stays rare (≤1 per stage transition) but chat silence purity is the mod's canon; the action bar keeps the one channel clean. Fabric decides as owner; if chat is used, keep it to the same ≤1-per-transition rate (no flooding).
+
 ## Open items for coordination
 
 - Runtime: confirm action kinds for relocating a player and overlays without a server mod (best effort is a client-side "wake" illusion if server teleport is out of scope for M3).
