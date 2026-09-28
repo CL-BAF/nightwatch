@@ -36,7 +36,7 @@ Status: DRAFT v1 (2026-09-29). This consolidates every DEFERRED in-game verifica
 
 | # | Exact action | Exact expected observation | PASS/FAIL |
 |---|---|---|---|
-| C1 | Play until a Watcher sighting (Overworld, dark, 40–60 blocks). | Static/observe-only silhouette; sinks and is gone when looked at directly; ≤6 s; no nametag, no tab entry, never approaches; animation desync reads "slightly wrong", NOT broken/janky (canon f). | ☐ |
+| C1 | Play until a Watcher sighting (Overworld, dark, 20–40 blocks — default ~30). | Spawn lands in YOUR current dimension at terrain height, 20–40 blocks ahead; while you look directly at it it FREEZES (desync reads "slightly wrong", not janky — canon f); when the ~6 s sighting lifetime expires it sinks/fades out (never snaps); no nametag, no tab entry, never approaches; no combat, no damage. | ☐ |
 | C2 | After first contact, on a later quiet night, find the pale door. Stand facing it 3 s. | Door "opens"; you are relocated into the Loom: vast dark, pale thread geometry, familiar-fragment islands, midnight-fixed. | ☐ |
 | C3 | Walk the thread stage; stop and turn back at ANY point. | Retracing always works; the way back is available at every stage (no soft-lock). | ☐ |
 | C4 | Echo stages: follow the copycat; watch the diverger; reach the facing echo. Choose APPROACH (walk into it). | Copycat = your own skin, distorted, mimicking you; its "death" is a dissolve into thread particles — HP/hunger NEVER change, inventory intact. Facing echo dissolves the moment you reach it. | ☐ |
