@@ -35,7 +35,7 @@ public final class LoomCueMapper {
             case DOOR_OPEN -> new LoomCueSpec(false, "door_open", "", false);
             case DOOR_CLOSE -> new LoomCueSpec(false, "door_close", "", false);
             case STATUS -> new LoomCueSpec(false, "", cue.argument(), true);
-            case CAUGHT_RELOCATE -> null; // never a client effect; driver routes it to the teleport payload
+            case CAUGHT_RELOCATE, EXIT_REQUEST -> null; // never a client effect; driver routes these to the teleport payloads
         };
     }
 

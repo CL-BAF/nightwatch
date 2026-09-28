@@ -15,7 +15,7 @@ public final class LoomSequence {
         SURVIVAL, DOOR }
 
     public enum CueKind { THREAD_REVEAL, ECHO_SPAWN, ECHO_DISSOLVE, ISLAND_MORPH,
-        DOOR_APPEAR, DOOR_OPEN, DOOR_CLOSE, CAUGHT_RELOCATE, STATUS }
+        DOOR_APPEAR, DOOR_OPEN, DOOR_CLOSE, CAUGHT_RELOCATE, EXIT_REQUEST, STATUS }
 
     public record Cue(CueKind kind, String argument) {}
 
@@ -101,11 +101,16 @@ public final class LoomSequence {
 
     private void onSurvival(Input input) {
         if (input == Input.WALKED_BACK) { backToDoor(); return; }
-        if (input == Input.ENTERED_DOOR) { stage = Stage.DOOR; emit(CueKind.DOOR_CLOSE, null); status = "safe"; }
+        if (input == Input.ENTERED_DOOR) {
+            stage = Stage.DOOR;
+            emit(CueKind.EXIT_REQUEST, null);
+            emit(CueKind.DOOR_CLOSE, null);
+            status = "safe";
+        }
         else if (input == Input.IDLE_CYCLE) relocate();
     }
 
-    private void backToDoor() { status = "retrace"; stage = Stage.DOOR; }
+    private void backToDoor() { status = "retrace"; stage = Stage.DOOR; emit(CueKind.EXIT_REQUEST, null); emit(CueKind.DOOR_CLOSE, null); }
 
     private void relocate() {
         stage = Stage.ENTRY;

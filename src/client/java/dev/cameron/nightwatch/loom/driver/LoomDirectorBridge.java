@@ -103,10 +103,18 @@ public final class LoomDirectorBridge {
     }
 
     private void flush() {
-        for (var spec : mapper.map(sequence.takeCues())) {
-            if (spec.effect()) hooks.effect(spec.id(), spec.argument());
-            else if (spec.statusText()) hooks.status(spec.argument());
-            else hooks.sound(spec.id());
+        for (LoomSequence.Cue cue : sequence.takeCues()) {
+            switch (cue.kind()) {
+                case CAUGHT_RELOCATE -> { hooks.teleportExit(true); hooks.sound("door_knock"); }
+                case EXIT_REQUEST -> { hooks.teleportExit(false); hooks.sound("door_knock"); }
+                default -> {
+                    var spec = mapper.mapOne(cue);
+                    if (spec == null) return;
+                    if (spec.effect()) hooks.effect(spec.id(), spec.argument());
+                    else if (spec.statusText()) hooks.status(spec.argument());
+                    else hooks.sound(spec.id());
+                }
+            }
         }
     }
 }
