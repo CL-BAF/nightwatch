@@ -24,5 +24,6 @@ Echoes are versions of the player the Unraveller tried to pull apart. Distortion
 
 ## Fabric interface needs
 - Render-layer hook on the player model applying per-grade scale/tilt/desat from the stage id; seam glints as 1px thread quads at elbow/knee joints for facing grades.
+- Facing grades stay world-positionable (renderer-side, Fabric owns): Loom's driver reads true line-of-sight distance (`echoPos()` + `crosshairAtEcho()`) for the Echo III choice inference — distortion must never detach the echo from its world position.
 - `setSeen`-style freeze not required for echoes (they dissolve, never freeze).
 - Texture sizes: player's own skin (no new texture); no layer-count change beyond one overlay pass.
