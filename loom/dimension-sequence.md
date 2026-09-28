@@ -69,6 +69,7 @@ The Director's memory applies these here for later pacing (Runtime coordinates: 
 - Every relocation is **reversible**: the permanent way back per hard rule 2 applies after any teleport.
 - **Zero item deletion, zero world damage, zero real damage** in either direction.
 - All world mutations run on the integrated server's game thread, never from the netty/network thread — receivers queue a task via the server executor, and only that task calls `ServerPlayer.teleportTo`.
+- **Suppression is additive only** (Lead, 2026-09-29): chat suppression inside the Loom may only silence Director chat — never bypass the MESSAGE chokepoint, validation, or pacing; and the way-back/exit guarantees (rules 1–6) hold regardless of suppression state. The Loom's personality inheritance may not raise message frequency or the word cap (CHATTY 10–12 stands everywhere).
 - Effect ID / argument channel stays a closed, fail-closed allowlist (`echo_spawn`/`echo_dissolve` args ∈ {copycat, diverger, facing, facing-closer}); anything else → SILENCE/silently ignored.
 
 ## effects/LoomIntegration hook spec (for Fabric — design only, implement after Gate 0 + effects/ executors exist)
