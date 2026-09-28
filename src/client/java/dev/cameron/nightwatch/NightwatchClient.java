@@ -1,5 +1,6 @@
 package dev.cameron.nightwatch;
 
+import dev.cameron.nightwatch.effects.LoomObservations;
 import dev.cameron.nightwatch.effects.SoundEffects;
 import dev.cameron.nightwatch.effects.VisualEffects;
 import dev.cameron.nightwatch.entity.NightwatchEntities;
@@ -35,6 +36,7 @@ public final class NightwatchClient implements ClientModInitializer {
     private Vec3 previousPosition;
     private int ticks;
     private long watcherVanishAt;
+    private LoomHooks loomHooks;
 
     private record Scheduled(long due, Action action) {}
 
@@ -42,7 +44,8 @@ public final class NightwatchClient implements ClientModInitializer {
         NightwatchEntities.register();
         NightwatchEntities.registerClient();
         LoomTeleportHandler.register();
-        LoomDirectorBridge.INSTANCE.register(new LoomHooks());
+        loomHooks = new LoomHooks();
+        LoomDirectorBridge.INSTANCE.register(loomHooks);
         settings = Settings.load(FabricLoader.getInstance().getConfigDir());
         director = new Director(new LocalWriter(settings.model(), settings.aiEnabled()),
             new Random(), runnable -> Minecraft.getInstance().execute(runnable),
@@ -70,6 +73,7 @@ public final class NightwatchClient implements ClientModInitializer {
             currentWorld = client.level;
             scheduled.clear();
             watcherVanishAt = 0L;
+            if (loomHooks != null) loomHooks.resetObservations();
             LoomDirectorBridge.INSTANCE.resetForWorldChange();
             previousPosition = client.player.position();
             ticks = 0;
@@ -118,21 +122,43 @@ public final class NightwatchClient implements ClientModInitializer {
 
     /** Bridges Loom cues to concrete client output. Loom only ever emits allowlisted, validated ids. */
     private static final class LoomHooks implements LoomDirectorBridge.Hooks {
+        private final LoomObservations observations = new LoomObservations();
+
+        void resetObservations() {
+            observations.reset();
+        }
+
         @Override public void effect(String allowlistedEffectId, String argument) {
-            VisualEffects.trigger(Minecraft.getInstance(), allowlistedEffectId, argument);
+            Minecraft client = Minecraft.getInstance();
+            observations.onEffect(allowlistedEffectId, argument, client);
+            VisualEffects.trigger(client, allowlistedEffectId, argument);
         }
         @Override public void sound(String allowlistedSoundId) {
             SoundEffects.play(Minecraft.getInstance(), allowlistedSoundId);
         }
         @Override public void status(String boundedText) {
             Minecraft client = Minecraft.getInstance();
-            if (client.player != null) client.player.sendSystemMessage(Component.literal(boundedText));
+            if (client.player != null) client.player.sendOverlayMessage(Component.literal(boundedText));
         }
         @Override public void teleportEnter() {
+            observations.reset();
             ClientPlayNetworking.send(LoomPayload.ENTER_ACTION);
         }
         @Override public void teleportExit(boolean caught) {
+            observations.reset();
             ClientPlayNetworking.send(caught ? LoomPayload.EXIT_CAUGHT_ACTION : LoomPayload.EXIT_ACTION);
+        }
+        @Override public boolean doorTriggered() {
+            return observations.doorTriggered(Minecraft.getInstance());
+        }
+        @Override public boolean frameTriggered() {
+            return observations.frameTriggered(Minecraft.getInstance());
+        }
+        @Override public Vec3 echoPos() {
+            return observations.echoPos();
+        }
+        @Override public boolean crosshairAtEcho() {
+            return observations.crosshairAtEcho(Minecraft.getInstance());
         }
     }
 
