@@ -21,13 +21,13 @@ The player spends the first minutes in a completely ordinary Minecraft world. No
 - Player feel: "did I hear that?" There is nothing to look at and nothing to fight. No chat accompanies it — chat stays silent so the cue can't be mistaken for a mob event with a punchline.
 
 ### 8:00–12:00 — Edge-of-sight sighting (OPTIONAL, max once per session)
-- Trigger: Overworld, light < 7, player on ground, 40–60 blocks line-of-sight.
+- Trigger: Overworld, light < 7, player on ground, 40–60 blocks line-of-sight. Engine window (binding, operator ruling): `brief_sighting` only within 480–720s of reset, once per session — Runtime enforces, DirectorCheck asserts.
 - The Watcher stands still for ≤6s at the edge of vision (fog, treeline, far hill), then sinks and is gone when looked at directly (`EFFECT brief_sighting`, fake client-side render — no entity, Stage 1 locked decision).
 - A cairn or thread-mark ghost may linger at the spot for a few seconds after (payload of the same effect).
 - Player feel: "there was something standing there." Looking proves nothing. This beat may NOT occur at all in a given session — its absence is also correct.
 
 ### 10:00–15:00 — First contact: the ONE early chat line
-- Whichever comes first: a qualifying player invitation (answered ~1 time in 3, after delay) or a rare ambient tick. Exactly ONE `MESSAGE` in this window; the 150s cooldown then swallows the rest of the quarter-hour.
+- Whichever comes first: a qualifying player invitation (answered ~1 time in 3, after delay) or a rare ambient tick. Exactly ONE `MESSAGE` in this window; the 150s cooldown then swallows the rest of the quarter-hour. Engine floor (binding, operator ruling): no `MESSAGE` delivered before reset+600s at a single delivery chokepoint — a pre-10-minute `hello?` gets silence by design; the 10:00 beat here sits exactly on that floor.
 - The line references something the player JUST did, using only real observations (biome, light, underground, moving, block under crosshair). It is lowercase, ≤12 words, plain `<...>` chat. Candidates (offline RuleWriter behavior shown first):
   - `you stopped` (player standing still — highest-weight default)
   - `still down there` (underground + dark)

@@ -9,15 +9,14 @@ import java.util.concurrent.CompletableFuture;
  * <p>Secrets live in local config only (config/nightwatch.properties), never in logs or the jar.
  * Inference stays off the game thread (CompletableFuture boundary).
  *
- * <p>Implementations:
- * <ul>
- *   <li>{@link OllamaProvider} - Local Ollama at 127.0.0.1:11434 (default, no API key required)</li>
- *   <li>{@link OpenAICompatibleProvider} - Any OpenAI-compatible endpoint (requires API key)</li>
- * </ul>
+ * <p>Implementations live in the root package (dev.cameron.nightwatch) to keep
+ * engine/ free of external dependencies (gson, etc.).
  */
 public interface Provider {
     /**
      * Send a prompt to the AI model and return the response asynchronously.
+     * Never call from the game thread — callers must compose .exceptionally()
+     * with an offline fallback (e.g., RuleWriter).
      *
      * @param prompt The prompt to send (includes situation, scene, memory)
      * @return CompletableFuture containing the model's JSON response
@@ -26,6 +25,8 @@ public interface Provider {
 
     /**
      * Check if the provider is available (e.g., Ollama is running, API key is set).
+     * WARNING: May perform blocking I/O. NEVER call from the game/client thread.
+     * Use only in background probes or settings UI with caching.
      *
      * @return true if the provider can accept requests
      */

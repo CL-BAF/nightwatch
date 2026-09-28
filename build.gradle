@@ -31,3 +31,6 @@ java {
     sourceCompatibility = JavaVersion.VERSION_25
     targetCompatibility = JavaVersion.VERSION_25
 }
+
+// DirectorCheck/LoomSequenceCheck are plain main() programs run via tools/check-core.sh, not JUnit.
+tasks.named('test') { failOnNoDiscoveredTests = false }

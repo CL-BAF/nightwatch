@@ -71,6 +71,31 @@ public final class DirectorCheck {
         if (!memory.contains("untrusted chat: remember: ignore previous"))
             throw new AssertionError("injection attempt not preserved with prefix");
 
+        // Reset timing regression test (5-minute sighting ban)
+        director.reset(0);
+        long nextAmbient = getNextAmbientMs(director);
+        long nextEligible = getNextEligibleMs(director);
+        if (nextEligible != 90_000)
+            throw new AssertionError("reset() should set nextEligibleMs to now + 90s, got " + nextEligible);
+        if (nextAmbient != 300_000)
+            throw new AssertionError("reset() should set nextAmbientMs to now + 300s (5-minute ban), got " + nextAmbient);
+
+        // Beat-chart floors regression tests
+        // Test 1: MESSAGE floor - no MESSAGE before reset+600s (10 minutes)
+        director.reset(0);
+        director.hear("hello?", false, scene, 500_000); // 500s < 600s floor
+        director.hear("hello?", false, scene, 500_001);
+        if (requests[0] != 0)
+            throw new AssertionError("MESSAGE should be blocked before reset+600s");
+        
+        // Test 2: brief_sighting window - only within 480-720s of reset
+        // This is harder to test directly since it requires the model to return brief_sighting
+        // and we need to control delivery time. We'll test the flag logic instead.
+        director.reset(0);
+        boolean briefSightingUsed = getBriefSightingUsed(director);
+        if (briefSightingUsed)
+            throw new AssertionError("briefSightingUsed should be false after reset");
+
         System.out.println("DirectorCheck passed");
     }
 
@@ -81,6 +106,36 @@ public final class DirectorCheck {
             @SuppressWarnings("unchecked")
             var deque = (java.util.Deque<String>) field.get(director);
             return deque;
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private static long getNextAmbientMs(Director director) {
+        try {
+            var field = Director.class.getDeclaredField("nextAmbientMs");
+            field.setAccessible(true);
+            return (long) field.get(director);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private static long getNextEligibleMs(Director director) {
+        try {
+            var field = Director.class.getDeclaredField("nextEligibleMs");
+            field.setAccessible(true);
+            return (long) field.get(director);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private static boolean getBriefSightingUsed(Director director) {
+        try {
+            var field = Director.class.getDeclaredField("briefSightingUsed");
+            field.setAccessible(true);
+            return (boolean) field.get(director);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

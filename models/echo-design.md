@@ -21,9 +21,9 @@ Echo = the residue the Watcher leaves. No entity required — all implementable 
 - Only when light <8 and player stationary. Subtle — no `sculk_soul` (too Warden-coded), no redstone/blood colours.
 - Trigger: alternate with E1 (never both).
 
-### E3 — Lantern dip (lighting) → `EFFECT shadow_flicker` + `SOUND lantern_dip`
-- Effect: for 5s, reduce perceived warmth — Fabric dims held-torch light? Slice version: play `block.candle.extinguish` at volume 0.15 + spawn `minecraft:smoke` x2 at nearest torch/lantern.
-- Pairing confirmed (Runtime 2026-09-29 — `lantern_dip` allowlisted in Action.java, distinct from door_knock-family): Fabric triggers both together when the Director emits either action; sound id is the trigger, Fabric maps it to the actual Minecraft sound event.
+### E3 — Lantern dip (lighting) → `SOUND lantern_dip` SELF-CONTAINED
+- Effect: for 5s, reduce perceived warmth — Fabric dims held-torch light? Slice version: `lantern_dip` plays `block.candle.extinguish` at volume 0.15 + spawns `minecraft:smoke` x2 at nearest torch/lantern. One id, one Fabric executor, no compound kind.
+- Ruling (Lead/operator 2026-09-29 — no compound actions): scripted same-moment beats are engine-scheduled as two Actions with equal due-time, never model-paired. `lantern_dip` itself stays self-contained (extinguish+smoke); the old "shadow_flicker + lantern_dip triggered together" pairing is withdrawn — use `lantern_dip` alone for E3.
 - No actual light-level rewrite, no block-state change. Pure sound + particle illusion.
 - Rare: max 1 in 3 sightings.
 
@@ -55,7 +55,7 @@ All built from vanilla blocks where possible so no new block registration is nee
   - Watcher sighting + cairn/thread-mark ghosts → `EFFECT brief_sighting`
   - E1 footstep → `SOUND footstep_distant` (gravel-based per §2)
   - E2 breath-fog → `EFFECT particle_burst`
-  - E3 lantern dip → `EFFECT shadow_flicker` (audio-component question noted in §2)
+  - E3 lantern dip → `SOUND lantern_dip` SELF-CONTAINED (extinguish+smoke in one id; no compound kind per Lead ruling).
   - E4 not-you → M2, needs `EFFECT` extension or new kind (Runtime owns)
 - Fallback correction (per Reviewer 2026-09-29 — the old empty-`MESSAGE` fallback is void since `message()` rejects blank text as `SILENCE`): if an effect has no `Action` kind, Fabric schedules it tick-side, gated by the SAME Director cooldown check exposed read-only. Never an empty `MESSAGE`.
 - `NightwatchClient.tick` hook: `effects/SightingEffect.java` (spawn/despawn fake Watcher), `effects/EchoEffect.java` (E1–E3 after 4s delay).
@@ -64,20 +64,19 @@ All built from vanilla blocks where possible so no new block registration is nee
   - SOUND `lantern_dip` — NEW, E3 extinguish cue as distinct id (not door_knock-family, per Loom agreement). Only addition requested for slice.
   - EFFECT `brief_sighting` — EXISTS, Watcher sighting; cairn/thread-mark ghosts ride as its payload, no new ids.
   - EFFECT `particle_burst` — EXISTS, E2 uses as-is.
-  - EFFECT `shadow_flicker` — EXISTS, E3 visuals pair with SOUND `lantern_dip`.
+  - EFFECT `shadow_flicker` — available; NOT used by E3 (E3 is `lantern_dip` alone per no-compound ruling).
   - E4 not-you → M2 `EFFECT echo_spawn`/`echo_dissolve` + `argument` stage id (allowlisted by Runtime 2026-09-29: copycat, diverger, facing, facing-closer), NOT requested for slice.
 - Pacing: sighting consumes the 150s `nextEligibleMs` window; echo rides free within 20s after. Never schedules sighting in first 5 min of world join.
-- Safety: all effects check the `active()` singleplayer guard in `NightwatchClient` (citation kept loose — line numbers shift as Fabric/Runtime edit), run on client thread via `Minecraft.execute`, volume ≤0.3, particle count ≤6.
+- Safety: all effects check the `active()` singleplayer guard in `NightwatchClient` (citation kept loose — line numbers shift as Fabric/Runtime edit), run on client thread via `Minecraft.execute`. Volume cap ≤0.3 is ECHO-SPECIFIC (E1/E2/E3, particle counts ≤6); door family (`door_knock`/`door_open`/`door_close`) exempt at 0.4–0.5 pending deferred human test (Lead ruling 2026-09-29).
 
 ## 5. Format / animation verification (Fabric 26.3)
-- Same verdict as creature doc: Blockbench **Java Block/Entity Model → `EntityModel` + code-driven `setAngles`** is the proposed path. No GeckoLib, no Molang, no `.geo.json`. Provisionally approved by Lead 2026-09-29 pending compile check.
-- Slice needs zero custom models (fake with vanilla sounds/particles) — so Fabric can ship E1–E3 before any `.bbmodel` compiles. Custom Watcher model lands once Lead confirms a minimal export compiles on 26.3.
-- Build gate update (Lead 2026-09-29): JDK 25.0.1 verified on-machine, Fabric compiling. No `.bbmodel` binaries committed until Lead gives the compile confirm.
-- `models/source/` will hold `watcher.bbmodel`, `loom_keeper.bbmodel`, `cairn.bbmodel` (all pending). This draft commits docs only — no binary assets yet.
+- Path: Blockbench **Java Block/Entity Model → `EntityModel` + code-driven `setAngles`**. No GeckoLib, no Molang, no `.geo.json`.
+- Sprint status (operator directive 2026-09-29): docs phase done, assets in build. Minimal cube compile test through Fabric's gradle retires the last format risk; `.bbmodel` policy lifts on success — sources + exports committed side by side in `models/src/` from then on.
+- `models/src/` holds `test_cube.bbmodel`, `watcher.bbmodel`, `loom_keeper.bbmodel`, `cairn.bbmodel`, `thread_mark.bbmodel`; `models/export/` stages the Fabric-ready Java + PNG until Fabric wires them into `src/`.
 
 ## 6. Open questions for Lead / Fabric / Loom / Runtime
-1. ~~Fake sighting (billboard quad) acceptable for slice, or do you want a real client-only `EntityType` now? (Models prefers fake.)~~ Resolved 2026-09-29 — Lead APPROVED fake for slice; no real EntityType until Stage 3.
-2. Runtime: ~~accept `SIGHTING`/`ECHO_*` Choice kinds, or keep `MESSAGE`-only for M1?~~ Resolved 2026-09-29 — Runtime shipped `Action` (SOUND/EFFECT + allowlists); Models maps to it in §4. ~~Open sub-item: E3 audio component + E4 M2 kind.~~ E3 resolved (`lantern_dip` allowlisted); E4 M2 mechanism resolved (`echo_spawn`/`echo_dissolve` + `argument`).
+1. ~~Fake sighting (billboard quad) acceptable for slice, or do you want a real client-only `EntityType` now? (Models prefers fake.)~~ Resolved-then-SUPERSEDED: Lead approved fake 2026-09-29, but operator directive same day LIFTED the no-EntityType ruling — Watcher is now a real observe-from-distance entity (Fabric registering). Fake retained as fallback only.
+2. Runtime: ~~accept `SIGHTING`/`ECHO_*` Choice kinds, or keep `MESSAGE`-only for M1?~~ Resolved 2026-09-29 — Runtime shipped `Action` (SOUND/EFFECT + allowlists); Models maps to it in §4. ~~Open sub-item: E3 audio component + E4 M2 kind.~~ E3 resolved self-contained (`lantern_dip`); E4 M2 mechanism resolved (`echo_spawn`/`echo_dissolve` + `argument`).
 3. Loom: ~~does thread-mark motif clash with dimension design? Rename if so.~~ Resolved 2026-09-29 — no clash, keep name "thread-mark", shared spec in §3.
-4. Reviewer: ~~E1 uses zombie step — does that violate "no mob confusion" bar? Alternative is gravel step.~~ Resolved 2026-09-29 — zombie-step rejected, gravel-step adopted in §2. Audibility check open to Fabric in-game.
+4. Reviewer: ~~E1 uses zombie step — does that violate "no mob confusion" bar? Alternative is gravel step.~~ Resolved 2026-09-29 — zombie-step rejected, gravel-step adopted in §2. Distance (~30 blocks behind, now as-coded in Fabric 2f3fa02): docs adopt the tested value after the operator-deferred audibility test; no in-game testing until Lead calls content-complete.
 5. Lead echo rule (2026-09-29, adopted): E4/Loom echoes use player's own distorted skin + no-multiplayer safeguards — mirrored in §E4. Supersedes the earlier grey-only draft; Reviewer re-check requested.

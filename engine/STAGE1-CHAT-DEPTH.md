@@ -40,10 +40,10 @@ public record Personality(String tone, Verbosity verbosity, ObservationFocus foc
 ### Pacing Constraint (from Models review)
 **CRITICAL:** Verbosity MODERATE/CHATTY must NOT override Director's 150s pacing. The Director's cooldown is the hard frequency cap. Verbosity affects word count per message, not message frequency:
 - SPARSE: 1-6 words per message
-- MODERATE: 7-12 words per message
-- CHATTY: 13-20 words per message (still bounded by Action 90-char limit)
+- MODERATE: 7-9 words per message
+- CHATTY: 10-12 words per message (capped at 12 to stay inside Action.message 90-char limit and LocalWriter's 12-word model cap)
 
-This ensures the first-15-minutes one-line budget is preserved regardless of personality setting.
+This ensures the first-15-minutes one-line budget and ≤12-word line shape are preserved regardless of personality setting.
 
 ## 2. Typing Illusion
 

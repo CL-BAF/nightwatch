@@ -18,6 +18,8 @@ public final class Director {
     private final Consumer<Runnable> mainThread;
     private long nextEligibleMs;
     private long nextAmbientMs;
+    private long resetTime;
+    private boolean briefSightingUsed;
     private boolean pending;
     private int generation;
 
@@ -32,8 +34,10 @@ public final class Director {
         memory.clear();
         pending = false;
         generation++;
+        resetTime = now;
+        briefSightingUsed = false;
         nextEligibleMs = now + 90_000;
-        nextAmbientMs = now + 150_000;
+        nextAmbientMs = now + 300_000;
     }
 
     public void hear(String message, boolean microphone, Scene scene, long now) {
@@ -46,7 +50,7 @@ public final class Director {
         // Even a direct invitation usually gets silence. Spamming never improves the odds.
         if (random.nextDouble() >= (microphone ? 0.38 : 0.32)) return;
         nextEligibleMs = now + 150_000;
-        request("The player said: " + trimmed, scene);
+        request("The player said: " + trimmed, scene, now);
     }
 
     public void tick(Scene scene, long now) {
@@ -54,10 +58,10 @@ public final class Director {
         nextAmbientMs = now + 140_000 + random.nextInt(160_000);
         if (now < nextEligibleMs || random.nextDouble() > 0.42) return;
         nextEligibleMs = now + 150_000;
-        request("A rare, unsolicited message could fit this moment.", scene);
+        request("A rare, unsolicited message could fit this moment.", scene, now);
     }
 
-    private void request(String situation, Scene scene) {
+    private void request(String situation, Scene scene, long requestTime) {
         pending = true;
         int requestedGeneration = generation;
         writer.decide(situation, scene, String.join(" | ", memory))
@@ -66,6 +70,13 @@ public final class Director {
                 if (generation != requestedGeneration) return;
                 pending = false;
                 if (action != null && action.kind() != Action.Kind.SILENCE) {
+                    // Beat-chart floors: enforce at the single delivery chokepoint
+                    if (action.kind() == Action.Kind.MESSAGE && requestTime < resetTime + 600_000) return;
+                    if (action.kind() == Action.Kind.EFFECT && "brief_sighting".equals(action.effectType())) {
+                        if (requestTime < resetTime + 480_000 || requestTime > resetTime + 720_000) return;
+                        if (briefSightingUsed) return;
+                        briefSightingUsed = true;
+                    }
                     if (action.kind() == Action.Kind.MESSAGE) {
                         remember("entity: " + action.message());
                     }

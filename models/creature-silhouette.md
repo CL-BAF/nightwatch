@@ -34,7 +34,7 @@ Readability goal: at 40–60 blocks, at night / fog / low light, player sees "to
 - Conditions: singleplayer, Overworld, light <7, player on ground, 40–60 blocks line-of-sight, terrain between ignored if fog.
 - Frequency: at most once per 10 min, never in first 5 min (protects Loom entry beat).
 - Lifetime: max 6s or until looked-at (above), then remove + log echo (see echo-design.md).
-- Implementation shortcut for slice: render as client-only dummy entity OR fully fake (see §4).
+- Implementation (operator directive 2026-09-29): real observe-from-distance entity — Fabric registering `EntityType` + renderer now; fake billboard retained as fallback only. No combat, no damage; behaviour: watch, occasionally vanish.
 
 ## 2. Loom Form ("the Loom-Keeper") — reserved for Loom role, stubbed here
 
@@ -54,5 +54,5 @@ Not built for vertical slice. Silhouette locked so Loom can plan dimension seque
 - Proposed: Blockbench Java Entity export → `EntityModel<LivingEntity>` + `ModelPart`, animated in code. No GeckoLib, no Bedrock `.animation.json`, no new dependency.
 - Why: Fabric 26.3 / Yarn `EntityModel` + `ModelPart` API is the stable path; GeckoLib pins and mixin surface would block the M1 build gate (`./gradlew build`, Java 25, loader 0.19.5, API 0.161.0+26.3 per README).
 - Slice shortcut (recommended): implement the sighting as a **fake** — a dark billboarded quad / armor-stand-like placed model with no `EntityType` registration, removed after 6s. Promotes to real client-only `EntityType` in M3 (watch/hide/stalk/chase).
-- Verification needed by Fabric/Lead on dev PC: (1) Blockbench 5.x Java export compiles against 26.3 Yarn `EntityModel`, (2) `setAngles` sway runs on client thread at 20Hz tick, (3) fake vs real entity decision — RESOLVED 2026-09-29, Lead approved fake for slice. Build gate update: JDK 25.0.1 verified, Fabric compiling; no `.bbmodel` binaries until Lead confirms (1).
+- Verification: (1) Blockbench 5.x Java export compiles against 26.3 Yarn `EntityModel` — retired by the minimal cube compile test through Fabric's gradle (this sprint); (2) `setAngles` sway runs on client thread at 20Hz tick; (3) fake vs real entity — SUPERSEDED by operator directive, real entity it is. Build is green; `.bbmodel` sources + exports committed side by side in `models/src/` + `models/export/`.
 - Editable sources (`*.bbmodel`) stay in `models/source/` alongside exports — never commit export-only.

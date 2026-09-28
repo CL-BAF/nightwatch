@@ -76,7 +76,9 @@ public class ProviderWriter implements Director.Writer {
 
     @Override
     public CompletableFuture<Action> decide(String situation, Scene scene, String memory) {
-        if (!provider.isAvailable()) return fallback.decide(situation, scene, memory);
+        // DO NOT call provider.isAvailable() here — it may block (Ollama does a 2s HTTP GET)
+        // and decide() is called from Director.request() on the game thread.
+        // Instead, call complete() and let it fail; exceptionally() falls back to RuleWriter.
         String prompt = buildPrompt(situation, scene, memory);
         return provider.complete(prompt)
             .thenApply(this::parseResponse)
@@ -84,6 +86,13 @@ public class ProviderWriter implements Director.Writer {
     }
 }
 ```
+
+### isAvailable() Usage
+
+The `isAvailable()` method is useful for settings UI (showing "Ollama: connected" status) but **must NOT be called from the game thread**. It performs blocking I/O (2s HTTP GET for Ollama). If you need to check availability:
+- Call it off-thread (e.g., in a background probe)
+- Cache the result with a TTL (e.g., 30s)
+- Use it only in non-blocking contexts (settings screen, not decide())
 
 ## Migration Path
 
