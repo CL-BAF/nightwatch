@@ -1,0 +1,106 @@
+package dev.cameron.nightwatch;
+
+import dev.cameron.nightwatch.effects.SoundEffects;
+import dev.cameron.nightwatch.effects.VisualEffects;
+import dev.cameron.nightwatch.engine.Action;
+import dev.cameron.nightwatch.engine.Director;
+import dev.cameron.nightwatch.engine.Scene;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Random;
+import net.fabricmc.api.ClientModInitializer;
+import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
+import net.fabricmc.fabric.api.client.message.v1.ClientSendMessageEvents;
+import net.fabricmc.loader.api.FabricLoader;
+import net.minecraft.client.Minecraft;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.network.chat.Component;
+import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.Vec3;
+
+/** First playable slice. All effects are client-only and only run in singleplayer. */
+public final class NightwatchClient implements ClientModInitializer {
+    private final List<Scheduled> scheduled = new ArrayList<>();
+    private Director director;
+    private Settings settings;
+    private VoiceInput voice;
+    private Object currentWorld;
+    private Vec3 previousPosition;
+    private int ticks;
+
+    private record Scheduled(long due, Action action) {}
+
+    @Override public void onInitializeClient() {
+        settings = Settings.load(FabricLoader.getInstance().getConfigDir());
+        director = new Director(new LocalWriter(settings.model(), settings.aiEnabled()),
+            new Random(), runnable -> Minecraft.getInstance().execute(runnable),
+            action -> scheduled.add(new Scheduled(System.currentTimeMillis() + action.delaySeconds() * 1000L, action)));
+        ClientSendMessageEvents.CHAT.register(message -> {
+            Minecraft client = Minecraft.getInstance();
+            if (active(client)) director.hear(message, false, scene(client), System.currentTimeMillis());
+        });
+        ClientTickEvents.END_CLIENT_TICK.register(this::tick);
+    }
+
+    private void tick(Minecraft client) {
+        if (!active(client)) {
+            if (currentWorld != null) {
+                currentWorld = null;
+                scheduled.clear();
+                if (voice != null) { voice.close(); voice = null; }
+            }
+            return;
+        }
+        if (currentWorld != client.level) {
+            if (voice != null) { voice.close(); voice = null; }
+            currentWorld = client.level;
+            scheduled.clear();
+            previousPosition = client.player.position();
+            ticks = 0;
+            director.reset(System.currentTimeMillis());
+            if (settings.microphoneEnabled()) {
+                voice = new VoiceInput(words -> client.execute(() -> {
+                    if (active(client)) director.hear(words, true, scene(client), System.currentTimeMillis());
+                }));
+                voice.start();
+            }
+        }
+        long now = System.currentTimeMillis();
+        scheduled.removeIf(item -> {
+            if (now < item.due()) return false;
+            Action action = item.action();
+            switch (action.kind()) {
+                case MESSAGE -> client.player.sendSystemMessage(Component.literal("<...> " + action.message()));
+                case SOUND -> SoundEffects.play(client, action.soundId());
+                case EFFECT -> VisualEffects.trigger(client, action.effectType(), action.argument());
+                case SILENCE -> {}
+            }
+            return true;
+        });
+        if (++ticks % 20 == 0) {
+            director.tick(scene(client), now);
+            previousPosition = client.player.position();
+        }
+    }
+
+    private static boolean active(Minecraft client) {
+        return client.level != null && client.player != null && client.getSingleplayerServer() != null;
+    }
+
+    private Scene scene(Minecraft client) {
+        BlockPos pos = client.player.blockPosition();
+        String lookedAt = "nothing";
+        if (client.hitResult instanceof BlockHitResult hit) {
+            lookedAt = BuiltInRegistries.BLOCK.getKey(client.level.getBlockState(hit.getBlockPos()).getBlock()).getPath();
+        }
+        String biome = client.level.getBiome(pos).unwrapKey()
+            .map(key -> key.identifier().getPath()).orElse("unknown");
+        boolean moving = previousPosition != null && previousPosition.distanceTo(client.player.position()) > 0.3;
+        return new Scene(client.player.getName().getString(), biome,
+            client.level.dimension().identifier().getPath(), lookedAt,
+            pos.getY() < client.level.getSeaLevel() - 12, moving,
+            client.level.getMaxLocalRawBrightness(pos), "observing surroundings");
+    }
+
+}

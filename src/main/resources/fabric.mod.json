@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "id": "nightwatch",
+  "version": "${version}",
+  "name": "Nightwatch",
+  "description": "A patient presence that notices what you do.",
+  "authors": ["Cameron"],
+  "environment": "client",
+  "entrypoints": {
+    "client": ["dev.cameron.nightwatch.NightwatchClient"]
+  },
+  "depends": {
+    "fabricloader": ">=0.19.5",
+    "fabric-api": "*",
+    "minecraft": "~26.3",
+    "java": ">=25"
+  }
+}
