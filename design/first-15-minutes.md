@@ -21,7 +21,7 @@ The player spends the first minutes in a completely ordinary Minecraft world. No
 - Player feel: "did I hear that?" There is nothing to look at and nothing to fight. No chat accompanies it — chat stays silent so the cue can't be mistaken for a mob event with a punchline.
 
 ### 8:00–12:00 — Edge-of-sight sighting (OPTIONAL, max once per session)
-- Trigger: Overworld, light < 7, player on ground, 40–60 blocks line-of-sight. Engine window (binding, operator ruling): `brief_sighting` only within 480–720s of reset, once per session — Runtime enforces, DirectorCheck asserts.
+- Trigger: Overworld, light < 7, player on ground, 20–40 blocks line-of-sight (canon v2 readability band). Engine window (binding, operator ruling): `brief_sighting` only within 480–720s of reset, once per session — Runtime enforces, DirectorCheck asserts.
 - The Watcher stands still for ≤6s at the edge of vision (fog, treeline, far hill), then sinks and is gone when looked at directly (`EFFECT brief_sighting`, fake client-side render — no entity, Stage 1 locked decision).
 - A cairn or thread-mark ghost may linger at the spot for a few seconds after (payload of the same effect).
 - Player feel: "there was something standing there." Looking proves nothing. This beat may NOT occur at all in a given session — its absence is also correct.

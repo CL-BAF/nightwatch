@@ -43,9 +43,12 @@ Echo = the residue the Watcher leaves. No entity required — all implementable 
 All built from vanilla blocks where possible so no new block registration is needed for the slice. Custom models later.
 
 1. **Cairn** — 3 stacked grey stones (cobblestone slab + stone button + cobblestone wall stub). Placed by worldgen? No — slice: Fabric fakes one at sighting site via client ghost render only, removed after. Marks "it stood here".
+   - Placement (sprint spec for Fabric `brief_sighting` fallback + Loom set-dressing): ground at the Watcher's despawn point, base slab flush, total height ≤1 block, facing random yaw; lifetime = sighting + 20s echo window, then fade (no pop). Never within 5 blocks of the player, never on player-placed blocks (check `isPlayerPlaced` equivalent — ask Fabric if the hook exists; else skip-if-near-player-builds).
 2. **Thread-mark** — 2–4 white wool-string-like lines (use `cobweb` texture, 1px cuboids) strung between trees near sighting. Client ghost only. Ties Overworld to Loom thread motif.
    - Shared thread spec (Overworld + Loom, per Loom coordination 2026-09-29): colour pale grey-white `#dddde6`, slight luminosity / emissive 0.3 (visible in fog, never fullbright), no red/brown tint, thickness 1px, opacity 0.7. Overworld marks are decoration; Loom strands reuse same colour as walkable geometry. Fabric renders both from this single spec.
+   - Placement: anchor between two solid blocks 3–8 blocks apart, 2–4 blocks high, within 15 blocks of the sighting point; sag 0.5 block at midpoint; same lifetime/fade as cairn. Loom set-dressing reuses the spec at island edges (Loom owns those coordinates).
 3. **Cold lantern** — existing lantern + E3 dip effect. No new item.
+   - Placement: no placement — E3 targets the NEAREST existing player-placed or world lantern/torch within 12 blocks; if none, E3 degrades to sound-only (no smoke). Never creates light sources.
 
 - Custom Blockbench prop models (`cairn.bbmodel`, `thread_mark.bbmodel`) deferred until after Fabric confirms Java-model pipeline (§5). Slice uses vanilla-block ghosts.
 
