@@ -69,6 +69,22 @@ Fabric (NightwatchClient) must:
 - Memory lines prefixed with "untrusted" to prevent instruction injection
 - Per-effect argument validation: echo_spawn/echo_dissolve accept only {copycat, diverger, facing}
 - Model cannot select Loom-only IDs (pale_thread, island_morph, echo_spawn, echo_dissolve, door_appear, door_open, door_close) — these are engine-internal
+- Lovecraft vocabulary bans enforced in LocalWriter (no Cthulhu, eldritch, etc)
+
+## E3 Ruling (binding)
+
+**No compound action kind.** Each effect ID is self-contained:
+- `lantern_dip` = extinguish + smoke (single effect, single ID)
+- `shadow_flicker` = lighting change (single effect, single ID)
+
+**Scripted same-moment beats** (e.g., E3 lantern dip = shadow_flicker + lantern_dip together):
+- Engine schedules two Actions with equal due-time
+- Pairing is NEVER model-driven
+- Model can only select one action at a time
+
+**Volume caps:**
+- Echo sounds (footstep_distant, whisper, lantern_dip): ≤0.3
+- Door family (door_knock, door_open, door_close): 0.4-0.5 (pending human test)
 
 ## Final Allowlist Mapping
 
