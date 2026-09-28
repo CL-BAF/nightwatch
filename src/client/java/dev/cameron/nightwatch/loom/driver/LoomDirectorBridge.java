@@ -109,7 +109,7 @@ public final class LoomDirectorBridge {
                 case EXIT_REQUEST -> { hooks.teleportExit(false); hooks.sound("door_knock"); }
                 default -> {
                     var spec = mapper.mapOne(cue);
-                    if (spec == null) return;
+                    if (spec == null) continue;
                     if (spec.effect()) hooks.effect(spec.id(), spec.argument());
                     else if (spec.statusText()) hooks.status(spec.argument());
                     else hooks.sound(spec.id());

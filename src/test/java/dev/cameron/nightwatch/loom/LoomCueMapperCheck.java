@@ -73,7 +73,9 @@ public final class LoomCueMapperCheck {
     private static void checkId(LoomCueMapper mapper, LoomSequence.Cue cue) {
         LoomCueMapper.LoomCueSpec spec = mapper.mapOne(cue);
         if (spec == null) {
-            if (cue.kind() != LoomSequence.CueKind.CAUGHT_RELOCATE) throw new AssertionError("unmapped cue " + cue);
+            if (cue.kind() != LoomSequence.CueKind.CAUGHT_RELOCATE && cue.kind() != LoomSequence.CueKind.EXIT_REQUEST) {
+                throw new AssertionError("unexpected unmapped cue " + cue);
+            }
             return;
         }
         if (spec.effect() && !LoomCueMapper.EFFECT_IDS.contains(spec.id())) {

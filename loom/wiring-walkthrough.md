@@ -45,6 +45,8 @@ Owner: Loom. Companion script for Reviewer's static verification of Fabric's wir
 
 ## Way-back inversions (each is a C3/C6 proof)
 
+- **The enter transition must NOT reset the sequence** (Reviewer static check): `resetForWorldChange` (Fabric's world-change hook) fires WALKED_BACK which is an EXIT_REQUEST — if that guard runs when the NEW level is the Loom, the player is ejected within a tick of entering. Fabric's wiring must skip the reset when the new dimension is `nightwatch:loom`; until that guard lands, W2/W3 rows can only pass after it. Sequence-side proof: `LoomSequenceCheck` has no world-change trigger — reset is hook-owner's responsibility.
+
 - Every ECHO/THREAD/SURVIVAL state accepts `WALKED_BACK` → `EXIT_REQUEST` (verified: `LoomSequenceCheck.wayBackFromEveryStage`)
 - Idle refuse routes out within 2–3 cycles (`idleReleasesFromFacingEcho`, `idleRoutesBackFromThreadAndEchoStages`)
 - `CAUGHT_RELOCATE` (SURVIVAL idle) → door re-offered at entry; nothing taken (knock-back only)
