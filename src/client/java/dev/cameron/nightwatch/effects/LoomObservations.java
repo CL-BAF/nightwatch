@@ -22,6 +22,8 @@ public final class LoomObservations {
     private static final double FRAME_REACH = 1.2;
     private static final double ECHO_RANGE_SQ = 400.0; // 20 blocks
     private static final double ECHO_DOT = Math.cos(Math.toRadians(5.0));
+    private static final int FACE_TICKS_TRIGGER = 60; // C2: stand facing the door ~3s
+    private static final double DOOR_FACE_DOT = Math.cos(Math.toRadians(10.0));
 
     private static final long GHOST_REFRESH_MS = 500L;
 
@@ -29,6 +31,7 @@ public final class LoomObservations {
     private Vec3 echoPos;
     private long lastDoorGhostMs;
     private long lastFrameGhostMs;
+    private int doorFaceTicks;
 
     /** Draw the offered door (and, inside the Loom, the fixed frame) as a rate-limited pale outline. */
     public void tick(Minecraft client, long nowMs, boolean inLoom) {
@@ -57,14 +60,38 @@ public final class LoomObservations {
     public void reset() {
         doorGhost = null;
         echoPos = null;
+        doorFaceTicks = 0;
     }
 
-    /** Player-chosen door entry: a use-click while the ghost is at hand or under the crosshair. */
+    /**
+     * Player-chosen door entry. Two accepted paths (Loom contract, C2):
+     * a use-click while the ghost is at hand or under the crosshair (faster), OR
+     * facing the ghost for >=60 consecutive ticks while within the interaction window.
+     */
     public boolean doorTriggered(Minecraft client) {
-        if (doorGhost == null || client.player == null) return false;
-        if (!client.options.keyUse.consumeClick()) return false;
-        return client.player.position().distanceTo(doorGhost) < DOOR_REACH
+        if (doorGhost == null || client.player == null) {
+            doorFaceTicks = 0;
+            return false;
+        }
+        boolean inWindow = client.player.position().distanceTo(doorGhost) < DOOR_REACH
             || rayDistance(client, doorGhost) < DOOR_RAY;
+        if (inWindow && facingDoor(client)) {
+            if (++doorFaceTicks >= FACE_TICKS_TRIGGER) {
+                doorFaceTicks = 0;
+                return true;
+            }
+        } else {
+            doorFaceTicks = 0;
+        }
+        if (!inWindow) return false;
+        return client.options.keyUse.consumeClick();
+    }
+
+    /** True when the local view is aligned with the door ghost (within ~10 degrees). */
+    private boolean facingDoor(Minecraft client) {
+        Vec3 to = doorGhost.subtract(client.player.getEyePosition());
+        if (to.lengthSqr() < 1.0E-4) return true;
+        return client.player.getViewVector(1.0F).dot(to.normalize()) > DOOR_FACE_DOT;
     }
 
     /** The fixed Loom frame pad centre. */
