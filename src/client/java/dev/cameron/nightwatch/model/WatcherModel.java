@@ -34,6 +34,7 @@ public final class WatcherModel extends EntityModel<LivingEntityRenderState> {
     private final ModelPart legLeft;
     private final ModelPart legRight;
     private boolean seen;
+    private float vanishProgress;
     private float targetForward;
     private float targetStrafe;
     private float lagForward;
@@ -122,6 +123,16 @@ public final class WatcherModel extends EntityModel<LivingEntityRenderState> {
     }
 
     /**
+     * Vanish staging (Fabric contract 2026-09-29): renderer drives 0→1 over
+     * ~500ms at the 6s deadline, then discards. Applies a 1-block downward
+     * drift to the root parts (absolute set each frame, so 0 restores exactly).
+     * Seen-freeze still holds during the sink (freeze gates sway, not sink).
+     */
+    public void setVanishing(float progress) {
+        this.vanishProgress = Math.max(0.0F, Math.min(1.0F, progress));
+    }
+
+    /**
      * Velocity feed for lagged follow-through (canon: movements out of sync).
      * Fabric calls this from extractRenderState; may be omitted (defaults to 0).
      */
@@ -133,6 +144,11 @@ public final class WatcherModel extends EntityModel<LivingEntityRenderState> {
     @Override
     public void setupAnim(LivingEntityRenderState state) {
         super.setupAnim(state);
+        // Sink runs regardless of freeze: the form sinks even while seen.
+        float sink = this.vanishProgress * 16.0F;
+        this.torso.y = 8.0F - sink;
+        this.legLeft.y = 2.0F - sink;
+        this.legRight.y = 5.0F - sink;
         if (this.seen) {
             return;
         }
