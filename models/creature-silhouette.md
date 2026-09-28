@@ -41,10 +41,11 @@ Readability goal: at 20–40 blocks, at night / fog / low light, player sees "a 
   | thread_shoulder | 1.3 | +2.6 | 0.06 pitch |
   | thread_ankle | 1.1 | +0.9 | 0.06 pitch |
   Threads swing widest (they're loose); legs barely move (it doesn't walk — it stands).
-- Seen-reaction: on player look (crosshair within 3° for >0.4s OR distance <25): freeze all parts 0.5s (`setSeen(true)`), then sink 1 block over 0.8s + discard (entity-side, Fabric). No walk-away, no attack, no teleport particles, no scale-up.
+- Seen-reaction (canonical staging, Models+Fabric 2026-09-29 — Reviewer C1 wording): freeze while directly seen → sink/fade on vanish/6s. Concretely: view-dot > 0.9 holds all parts frozen (`setSeen(true)`); on look-away break, 6s expiry, or distance < 25, the form sinks 1 block over 0.8s and discards (Fabric `vanishAll` covers world-leave). No walk-away, no attack, no teleport particles, no scale-up.
 
 ### Spawn / despawn rules (for Fabric entity + `effects/`)
-- Conditions: singleplayer, Overworld, light <7, player on ground, 20–40 blocks line-of-sight.
+- Conditions: singleplayer, Overworld, light < 7, player on ground, 20–40 blocks line-of-sight.
+- Distance bias (Lead ruling 2026-09-29 — design band wins over code/script values): spawner default ~30 blocks ahead, clamped 20–40. Models confirms 30 as the legibility bias point: at 30 blocks the 2.9-tall matte form resolves as a standing fragment at night/fog (limb mismatch + face-plates readable, thread pixels sub-pixel shimmer only), while staying far enough that no feature invites approach.
 - Frequency: engine window 480–720s post-reset, once per session (binding); never in first 8 min (protects the first-15-minutes arc + MESSAGE floor).
 - Lifetime: max 6s or until looked-at (above), then remove + echo window (see echo-design.md).
 - Implementation (operator directive 2026-09-29): real observe-from-distance entity — Fabric registering `EntityType` + renderer now; fake billboard retained as fallback only. No combat, no damage; behaviour: watch, occasionally vanish.
