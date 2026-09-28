@@ -1,6 +1,6 @@
 # Loom entry research — client-env mod, custom dimension, 26.3 singleplayer (M3 prep)
 
-Owner: Loom. Status: research + proposal, ingestible by Lead/Fabric. No code written. No fabric.mod.json change requested yet.
+Owner: Loom. Status: research + proposal DOWNLOADED/IMPLEMENTED (commit cb25261); Stage-2 code lives in `loom/net/`, `loom/driver/`, `loom/`. Canon note: the dimension is the Unraveller's workspace (see dimension-sequence.md canon section) — entry design unchanged: door → thread → stages → exit frame. No full-body reveal is ever staged at or after entry. No fabric.mod.json change requested.
 
 Verified against the locally-cached artifacts (`%USERPROFILE%\.gradle\caches\fabric-loom\26.3\m*-*.jar`, `fabric-dimensions-v1-5.1.19`, `fabric-networking-api-v1-6.3.8`) — all names below were decompiled via javap at 2026-09-29.
 

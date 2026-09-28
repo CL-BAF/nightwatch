@@ -18,6 +18,16 @@ Familiarity is the horror. The player should keep thinking "I know this place" a
 5. **One-way threat cap.** Any "caught" outcome relocates the player to the entry door and plays the knock-back. Nothing else is taken.
 6. **Echoes are never mistaken for real players** (per Reviewer / Lead vision). All echoes — Overworld E4 and Loom alike (current ruling, pillars §3) — render with the **player's own skin, distorted by stage and location**, never a foreign skin, never a grey figure. They must have **no tab-list entry, no nametag, no name above head, and no join/leave chat**. They are not real entities with any server presence; client-side illusion rendering only, per Models' E4 parametric distortion spec with normative guards (multiplayer-metadata ban, never-speaks-as-player, first-glance distortion, always distorted; #dddde6 thread dissolve end-state). When a later multiplayer-safe engine lands, this rule stands unchanged: an echo looks like *you*, and never communicates. (Earlier "Overworld grey-only vs Loom own-skin" split retired 2026-09-29 after the own-skin-everywhere ruling — the unifying element across Overworld and Loom is now the same distorted own-skin asset at increasing distortion.)
 
+(Plus review-later additions: 7. **No full-body reveal.** The being behind the Loom is never staged in full — no camera beat, cutscene or boss-fight framing ever shows all of it. See canon below.)
+
+## Canon (Lead binding, 2026-09-29) — the Unraveller
+
+- The Loom is where the Unraveller **works**: thread strands are its material, islands are pieces it has taken — the dimension must read as a **workspace mid-act**, not a lair with an occupant. Nothing is ever staged standing inside it.
+- Echo deaths are the canon act itself: each dead echo is a version of the player it **tried to pull apart**. Echo I's mid-stride cut, Echo II bending into its own thread, Echo III's dissolve are all that verb shown at increasing closeness. The distortion parameter (per-stage) is the pull already in progress.
+- Core feeling for every beat: *"it knows which version of you survives, and it's trying to make that stop being true."* The way out is narratively the surviving version walking free; the survivability invariants (rules 1–6, incl. the permanent way back) are therefore not just gates but the point of the story.
+- The thread-mark is Unraveller material by construction (#dddde6 shared spec unchanged); Overworld thread-marks read as traces of work done; Loom strands as the work itself.
+- HARD BANS (canon + project rules): no named Lovecraft entities in any doc, string, prompt or asset; no boss-fight framing; full-body reveal banned per rule 7.
+
 ## World entry — the Loom entry
 
 The Design team defines when the mod first acknowledges the player in the Overworld. The Loom entry is its escalation:
