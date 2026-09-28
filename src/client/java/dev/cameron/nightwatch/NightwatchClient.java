@@ -57,6 +57,7 @@ public final class NightwatchClient implements ClientModInitializer {
     private void tick(Minecraft client) {
         if (!active(client)) {
             if (currentWorld != null) {
+                WatcherSpawner.vanishAll(client);
                 currentWorld = null;
                 scheduled.clear();
                 if (voice != null) { voice.close(); voice = null; }
@@ -65,6 +66,7 @@ public final class NightwatchClient implements ClientModInitializer {
         }
         if (currentWorld != client.level) {
             if (voice != null) { voice.close(); voice = null; }
+            WatcherSpawner.vanishAll(client);
             currentWorld = client.level;
             scheduled.clear();
             watcherVanishAt = 0L;
@@ -91,7 +93,7 @@ public final class NightwatchClient implements ClientModInitializer {
                 }
                 case EFFECT -> {
                     if ("brief_sighting".equals(action.effectType()) && WatcherSpawner.spawnSighting(client)) {
-                        watcherVanishAt = now + 12_000L; // observe from distance, then vanish
+                        watcherVanishAt = now + 6_000L; // observe from distance, then guaranteed vanish
                     } else {
                         VisualEffects.trigger(client, action.effectType(), action.argument());
                     }
@@ -103,7 +105,7 @@ public final class NightwatchClient implements ClientModInitializer {
         });
         if (watcherVanishAt != 0L && now >= watcherVanishAt) {
             watcherVanishAt = 0L;
-            WatcherSpawner.vanishNearby(client, 64.0);
+            WatcherSpawner.vanishAll(client);
         }
         boolean moving = previousPosition != null && previousPosition.distanceTo(client.player.position()) > 0.3;
         boolean inLoom = LoomTeleportHandler.LOOM.equals(client.level.dimension());

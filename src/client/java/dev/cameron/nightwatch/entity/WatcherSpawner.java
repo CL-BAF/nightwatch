@@ -37,20 +37,23 @@ public final class WatcherSpawner {
             WatcherEntity watcher = NightwatchEntities.WATCHER.create(level, EntitySpawnReason.TRIGGERED);
             if (watcher == null) return;
             watcher.snapTo(position.x, position.y, position.z, 0.0F, 0.0F);
-            watcher.setPersistenceRequired();
             level.addFreshEntity(watcher);
         });
     }
 
-    public static void vanishNearby(Minecraft client, double radius) {
+    /** Discards every Watcher across every dimension. Used on the 6s lifetime and on world leave. */
+    public static void vanishAll(Minecraft client) {
         IntegratedServer server = client.getSingleplayerServer();
-        if (server == null || client.player == null) return;
-        AABB box = client.player.getBoundingBox().inflate(radius);
+        if (server == null) return;
         server.execute(() -> {
-            ServerLevel level = server.overworld();
-            for (WatcherEntity watcher : level.getEntitiesOfClass(WatcherEntity.class, box)) {
-                watcher.discard();
+            for (ServerLevel level : server.getAllLevels()) {
+                for (WatcherEntity watcher : level.getEntitiesOfClass(WatcherEntity.class, EVERYWHERE)) {
+                    watcher.discard();
+                }
             }
         });
     }
+
+    private static final AABB EVERYWHERE =
+        new AABB(-3.0E7, -512.0, -3.0E7, 3.0E7, 512.0, 3.0E7);
 }

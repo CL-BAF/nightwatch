@@ -39,9 +39,10 @@ public final class NightwatchEntities {
     public static final EntityType<WatcherEntity> WATCHER = Registry.register(
         BuiltInRegistries.ENTITY_TYPE,
         WATCHER_ID,
-        EntityType.Builder.of(WatcherEntity::new, MobCategory.MONSTER)
+        EntityType.Builder.of(WatcherEntity::new, MobCategory.MISC)
             .sized(0.6F, 2.9F)
             .clientTrackingRange(10)
+            .noSave() // never serialised to disk: a leaked Watcher is impossible (Models' requirement)
             .build(ResourceKey.create(Registries.ENTITY_TYPE, WATCHER_ID)));
 
     /** Common-side registration. Call from the mod initialiser. */
