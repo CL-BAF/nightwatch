@@ -40,6 +40,20 @@ public class WatcherRenderer extends LivingEntityRenderer<WatcherEntity, LivingE
     public void extractRenderState(WatcherEntity entity, LivingEntityRenderState state, float partialTick) {
         super.extractRenderState(entity, state, partialTick);
         this.model.setSeen(isLookedAt(entity));
+        feedMotion(entity);
+    }
+
+    /** Projects the entity's velocity onto its facing so Models' model can lag parts behind the whole. */
+    private void feedMotion(WatcherEntity entity) {
+        Vec3 motion = entity.getDeltaMovement();
+        if (motion.horizontalDistanceSqr() < 1.0E-6) {
+            this.model.setMotion(0.0F, 0.0F);
+            return;
+        }
+        float yaw = entity.getYRot() * ((float) Math.PI / 180.0F);
+        Vec3 facing = new Vec3(-Math.sin(yaw), 0.0, Math.cos(yaw));
+        Vec3 right = new Vec3(Math.cos(yaw), 0.0, Math.sin(yaw));
+        this.model.setMotion((float) motion.dot(facing), (float) motion.dot(right));
     }
 
     /** True when the local player's view direction is closely aligned with the direction to the Watcher. */
