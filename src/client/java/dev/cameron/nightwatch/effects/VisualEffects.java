@@ -80,6 +80,36 @@ public final class VisualEffects {
         for (int i = 0; i < count; i++) spawn(client, ParticleTypes.SMOKE, x, y, z);
     }
 
+    /**
+     * A free-standing pale outline facing the player (Loom's "visible door" / frame cue).
+     * Client-side particles only: no block is placed, nothing interacts, nothing is revealed
+     * beyond a doorway suggests. Caller rate-limits the emission.
+     */
+    static void paleDoor(Minecraft client, Vec3 base, double width, double height) {
+        Vec3 view = client.player.getViewVector(1.0F);
+        Vec3 flat = new Vec3(view.x, 0.0, view.z);
+        if (flat.lengthSqr() < 1.0E-6) flat = new Vec3(0.0, 0.0, 1.0);
+        flat = flat.normalize();
+        Vec3 half = new Vec3(-flat.z, 0.0, flat.x).scale(width * 0.5);
+        for (int i = 0; i <= 8; i++) {
+            double f = i / 8.0;
+            spawn(client, ParticleTypes.WHITE_SMOKE, base.x + half.x, base.y + f * height, base.z + half.z);
+            spawn(client, ParticleTypes.WHITE_SMOKE, base.x - half.x, base.y + f * height, base.z - half.z);
+        }
+        for (int i = 0; i <= 6; i++) {
+            double f = 1.0 - 2.0 * (i / 6.0);
+            spawn(client, ParticleTypes.WHITE_SMOKE, base.x + half.x * f, base.y, base.z + half.z * f);
+            spawn(client, ParticleTypes.WHITE_SMOKE, base.x + half.x * f, base.y + height, base.z + half.z * f);
+        }
+        RandomSource random = client.player.getRandom();
+        for (int i = 0; i < 4; i++) {
+            spawn(client, ParticleTypes.SOUL,
+                base.x + half.x + (random.nextDouble() - 0.5) * 0.4,
+                base.y + height + random.nextDouble() * 0.8,
+                base.z + half.z + (random.nextDouble() - 0.5) * 0.4);
+        }
+    }
+
     private static void spawn(Minecraft client, ParticleOptions particle, double x, double y, double z) {
         client.level.addParticle(particle, x, y, z, 0.0, 0.0, 0.0);
     }

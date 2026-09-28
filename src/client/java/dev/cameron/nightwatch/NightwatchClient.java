@@ -47,7 +47,13 @@ public final class NightwatchClient implements ClientModInitializer {
         loomHooks = new LoomHooks();
         LoomDirectorBridge.INSTANCE.register(loomHooks);
         settings = Settings.load(FabricLoader.getInstance().getConfigDir());
-        director = new Director(new LocalWriter(settings.model(), settings.aiEnabled()),
+        Director.Writer writer;
+        if (settings.aiEnabled()) {
+            writer = new ProviderWriter(ProviderFactory.create(FabricLoader.getInstance().getConfigDir()));
+        } else {
+            writer = new dev.cameron.nightwatch.engine.RuleWriter();
+        }
+        director = new Director(writer,
             new Random(), runnable -> Minecraft.getInstance().execute(runnable),
             action -> scheduled.add(new Scheduled(System.currentTimeMillis() + action.delaySeconds() * 1000L, action)));
         ClientSendMessageEvents.CHAT.register(message -> {
@@ -113,6 +119,7 @@ public final class NightwatchClient implements ClientModInitializer {
         }
         boolean moving = previousPosition != null && previousPosition.distanceTo(client.player.position()) > 0.3;
         boolean inLoom = LoomTeleportHandler.LOOM.equals(client.level.dimension());
+        if (loomHooks != null) loomHooks.tick(client, now, inLoom);
         LoomDirectorBridge.INSTANCE.tick(inLoom, client.player.position(), moving, now);
         if (++ticks % 20 == 0) {
             director.tick(scene(client), now);
@@ -126,6 +133,10 @@ public final class NightwatchClient implements ClientModInitializer {
 
         void resetObservations() {
             observations.reset();
+        }
+
+        void tick(Minecraft client, long nowMs, boolean inLoom) {
+            observations.tick(client, nowMs, inLoom);
         }
 
         @Override public void effect(String allowlistedEffectId, String argument) {

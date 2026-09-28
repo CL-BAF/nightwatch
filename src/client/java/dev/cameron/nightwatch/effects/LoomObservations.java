@@ -22,8 +22,25 @@ public final class LoomObservations {
     private static final double ECHO_RANGE_SQ = 400.0; // 20 blocks
     private static final double ECHO_DOT = Math.cos(Math.toRadians(5.0));
 
+    private static final long GHOST_REFRESH_MS = 500L;
+
     private Vec3 doorGhost;
     private Vec3 echoPos;
+    private long lastDoorGhostMs;
+    private long lastFrameGhostMs;
+
+    /** Draw the offered door (and, inside the Loom, the fixed frame) as a rate-limited pale outline. */
+    public void tick(Minecraft client, long nowMs, boolean inLoom) {
+        if (client.player == null) return;
+        if (doorGhost != null && nowMs - lastDoorGhostMs >= GHOST_REFRESH_MS) {
+            lastDoorGhostMs = nowMs;
+            VisualEffects.paleDoor(client, doorGhost, 1.0, 2.0);
+        }
+        if (inLoom && nowMs - lastFrameGhostMs >= GHOST_REFRESH_MS) {
+            lastFrameGhostMs = nowMs;
+            VisualEffects.paleDoor(client, LOOM_FRAME_CENTER, 7.0, 3.0);
+        }
+    }
 
     /** Update ghost placement from an allowlisted effect id; never trusts the model. */
     public void onEffect(String effectId, String argument, Minecraft client) {
