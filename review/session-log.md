@@ -10,7 +10,36 @@ Session window opened: 2026-09-29, content-complete called at HEAD e39921e (Lead
 
 ## Session evidence (to be filled per the script's evidence section)
 
-- Pre-flight rebuild verified (commit + jar size/time): ☐
+### Session start — 2026-09-29 14:39 local (Lead-launched runClient, PID 29408)
+
+- Boot evidence verified by Reviewer from %TEMP%\nw-session.log + run\logs\latest.log: nightwatch 0.1.0 / minecraft 26.3 / java 25 loaded among 52 mods; OpenAL initialized on the operator's G522 headset; sound engine started; benign Realms-auth errors only in the boot phase.
+- Artifact at session start: the verified authoritative jar (100,841 B @ 10:50:48, triple-reproduced from e39921e-code-identical HEAD) — no rebuild re-run; matches the session-log rule.
+- **SESSION FINDING F1 (FAIL-side, 14:41:05, Worker-Main-4)**: registry load error — `Failed to parse nightwatch:loom from pack nightwatch` in `minecraft:dimension_type` (IllegalStateException via RegistryLoadTask.PendingRegistration.loadFromResource). Loom's deferred assumption (a) — the dimension_type JSON field set matches 26.3 — is answered NEGATIVELY; assumption (b) — client-env mod data packs apply — is CONFIRMED (the nightwatch pack was read; this is a codec rejection, not a missing pack). Fail-closed behavior CONFIRMED LIVE: no crash, no damage; server.getLevel(LOOM) will be null → the door never opens. Impact: script rows C2–C9 (Loom) are BLOCKED this session; rows A1–A8 and B1–B4 remain fully testable. Triage routed to Lead + Loom (owner); diagnosis read-only during freeze; fixes wait for the post-session window. NOTE for the boot-check standard: the registry-load phase happens AFTER the startup lines (this error at 14:41:05 postdates the boot check) — full-session log review, not just startup lines.
+- Operator trigger-commands question answered on record: only /nightwatch memory status|reset|delete exist; a dev cue-trigger command is a possible post-session item pending operator interest (Lead's log).
+
+### Session Finding F1 — CORRECTED IMPACT + Reviewer process errors on record
+
+**CORRECTION (Lead's, confirmed first-hand by Reviewer):** F1 did NOT stay fail-closed — it ESCALATED FATAL: `net.minecraft.ReportedException: Registry Loading` → `Caused by: IllegalStateException: Failed to load registries due to errors` → `[14:43:19] Stopping!` — the client EXITED; the operator was stuck at "preparing for world creation"; no window remained. The 26.3 RegistryDataLoader treats mod-data parse failures as FATAL at world creation — the fail-closed posture in LoomTeleportHandler (silent door) only covers the teleport path, NOT the registry-load path. **Impact: ALL script rows are blocked (A/B rows require a world), not just C2–C9.** Reviewer's earlier assessment ("fail-closed confirmed live, operator continues with A/B") was WRONG and is withdrawn.
+
+**Deepest cause (read by Reviewer after Lead's correction — process error on record):** the log DOES name the field, one Caused-by deeper than Reviewer's original read: `Caused by: java.lang.IllegalStateException: No key has_ender_dragon_fight in MapLike[{...dimension_type/loom.json verbatim...}]`. Reviewer's triage claim "the log's generic message doesn't name the field" was WRONG — the standard (read to the deepest cause before routing suspects) applies to the evidence hub itself. The named field confirms 26.3 requires has_ender_dragon_fight (all three vanilla files carry it; Loom's proposed replacement includes it — pre-verification stands).
+
+**Process additions encoded (Lead-mandated):**
+1. Boot-check standard: include the FULL registry-load phase (world-creation data loading postdates main-menu boot by ~80s+ — this error class is invisible to startup-line checks).
+2. NEW STANDING GATE: any resource/registry-affecting change requires a quickPlay WORLD-CREATION SMOKE before content-complete — main-menu boot is insufficient evidence; only world creation exercises RegistryDataLoader on mod data.
+3. Deferred assumptions with fatal-block potential must be smoke-tested BEFORE a content-complete call, never deferred to the operator session. (Lead's content-complete call stands corrected on record — the world-creation smoke gate did not exist; lesson recorded in claudeplan at resolution.)
+
+**Session state:** SUSPENDED at world-creation failure; narrow freeze exception (Loom JSON fix → Fabric rebuild + authorized quickPlay world-creation smoke → Reviewer verifies the registry-phase-clean log → Lead resumes the operator session). Reviewer's step in the fix flow: registry-phase-clean log verification.
+
+### Loom diagnosis + Reviewer pre-verification (read-only, freeze held)
+
+Loom's root-cause diagnosis (26.3 EnvironmentAttributeMap codec rebuild) CONFIRMED against the jar's own vanilla data (extracted by Reviewer from minecraft-client.jar: data/minecraft/dimension_type/{the_end,the_nether,overworld}.json + worldgen/flat_level_generator_preset/the_void.json):
+
+- Loom's proposed replacement JSON is SHAPE-CORRECT on every statically checkable field: bed_rule {can_set_spawn/can_sleep "never" strings + destroy_on_use} matches the_end exactly; respawn_anchor_works bare boolean (the_nether form); ambient_light_color/fog_color/sky_color are #-prefixed hex strings (Loom's hunch RESOLVED: yes, #-prefixed — vanilla #3f473f etc.); sky_light_factor 0.0 form confirmed; monster_spawn_light_level 15 / block_light_limit 0 are bare ints matching the_end's EXACT values (overworld's IntProvider object proves both forms accepted); skybox "none" is a valid value (the_nether uses it); timelines "#minecraft:in_end" tag form confirmed (all vanilla files use "#minecraft:in_*"); has_ender_dragon_fight present in ALL vanilla files (required-form, included); height/logical_height/min_y 384/384/-64 matches overworld; infiniburn tag form confirmed. cardinal_light is optional (the_nether only) — correctly omitted. sky_light_color omitted — attributes appear per-dimension optional (the_nether omits sky_color/fog_color) — low risk.
+- REMAINING LOW-RISK verify-at-fix items (registry refs from a foreign dimension, only the real client can confirm): default_clock "minecraft:the_end" referenced by a non-End dimension (a registry reference — should parse); timelines "#minecraft:in_end" same class. structure_overrides: [] addition to dimension/loom.json is likely REQUIRED, not optional — the vanilla the_void flat preset carries it; without it the LevelStem may fail to parse next once the dimension_type is fixed.
+- Verdict: the proposed fix has high first-try probability; the fix-time relaunch (post-freeze) is the confirmation gate for C2–C9. Fix authorship: Loom, post-session per Lead's call.
+
+### Pending collection
+
 - Per-row results (A1–A8, B1–B4, C1–C9) with timestamps: ☐
 - latest.log (full) + config/nightwatch.properties (key redacted after B3): ☐
 - E1 audibility verdict (clear / faint / inaudible @ 0.25 vol, 30 blocks behind) — decides the gain/position reconciliation: ☐
