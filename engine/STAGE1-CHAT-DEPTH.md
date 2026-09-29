@@ -161,8 +161,9 @@ if (typingIndicator != null) typingIndicator.cancelPending();
 
 **Universal Guards:**
 - `showThenSend()` re-checks `client.player != null`, `client.level != null`, `client.getSingleplayerServer() != null` on game thread before final send
+- `showThenSend()` also checks `!LoomTeleportHandler.LOOM.equals(client.level.dimension())` to suppress delivery if player entered Loom during typing window (silence reads heavier in the Loom)
 - `cancelPending()` cancels all pending futures and clears the list
-- Loom chat suppression prevents MESSAGE delivery in Loom dimension (Personality.shouldSuppressChat)
+- Existing Loom chat suppression prevents MESSAGE delivery in Loom dimension (Personality.shouldSuppressChat)
 
 ## 3. Bounded World Memory
 

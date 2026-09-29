@@ -58,6 +58,8 @@ public final class TypingIndicator {
                 if (client.player == null) return;
                 if (client.level == null) return;
                 if (client.getSingleplayerServer() == null) return;
+                // Silence reads heavier in the Loom — suppress delivery if player entered Loom during typing window
+                if (dev.cameron.nightwatch.loom.net.LoomTeleportHandler.LOOM.equals(client.level.dimension())) return;
                 
                 // Send final message to chat (26.3 API)
                 client.player.sendSystemMessage(
