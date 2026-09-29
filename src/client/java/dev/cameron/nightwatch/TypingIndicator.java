@@ -14,8 +14,10 @@ import java.util.concurrent.TimeUnit;
  * Typing illusion: shows "typing..." indicator in action bar, then sends final message to chat.
  * Uses 26.3 API: sendOverlayMessage for action bar, sendSystemMessage for chat.
  * 
- * Lifecycle: cancelPending() must be called on disconnect/dimension change to prevent
- * stale messages from firing into the wrong world.
+ * Lifecycle: cancelPending() must be called at save leave (disconnect or return to
+ * title screen) to prevent stale messages from firing into the wrong world.
+ * In-save dimension transitions (Loom, nether) do NOT call cancelPending — pending
+ * messages may survive by design, guarded by liveness re-check + Loom suppression.
  */
 public final class TypingIndicator {
     private final Minecraft client;
@@ -27,7 +29,8 @@ public final class TypingIndicator {
     }
 
     /**
-     * Cancel all pending typing indicators. Call on disconnect/dimension change.
+     * Cancel all pending typing indicators. Call at save leave only (not at in-save
+     * dimension transitions — those are handled by liveness re-check + Loom suppression).
      */
     public void cancelPending() {
         synchronized (pending) {

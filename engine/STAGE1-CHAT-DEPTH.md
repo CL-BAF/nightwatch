@@ -129,7 +129,7 @@ public class TypingIndicator {
 - When Action is due, if MESSAGE: TypingIndicator.showThenSend(message) handles both the overlay preview and final chat line
 - Typing indicator uses sendOverlayMessage (26.3 API) for action bar, sendSystemMessage for chat
 - Delay is randomized (1-3s) to feel natural
-- **Lifecycle guards**: cancelPending() must be called on disconnect/dimension change to prevent stale messages
+- **Lifecycle guards**: cancelPending() must be called at save leave only (not at in-save dimension transitions — those are handled by liveness re-check + Loom suppression)
 - **Fabric integration point**: NightwatchClient.java line ~99 (case MESSAGE) calls typingIndicator.showThenSend(action.message()) instead of direct sendSystemMessage
 
 ### Fabric Integration Contract (v2 — two-branch lifecycle)
@@ -170,7 +170,7 @@ if (typingIndicator != null) typingIndicator.cancelPending();
 ### Design
 Each save gets a bounded, opt-in memory that persists across sessions. Memory is stored in `config/nightwatch/saves/<save-id>.json`. Player can delete/reset memory via chat commands.
 
-**Scoping**: Per-save (not per-dimension) to prevent cross-save bleed. The saveId is derived from the integrated server's storage folder name, which is unique per singleplayer world.
+**Scoping**: Per-save (not per-dimension) to prevent cross-save bleed. The saveId is derived from the integrated server's world path via `server.getWorldPath(LevelResource.ROOT).getFileName().toString()`, which returns the level-storage folder name unique per singleplayer world.
 
 ### Memory Schema
 ```json
@@ -239,7 +239,8 @@ public class WorldMemory {
 private WorldMemory worldMemory;
 
 // Save entry (when currentWorld becomes non-null):
-String saveId = client.getSingleplayerServer().getStorageSource().getFolderName();
+var server = client.getSingleplayerServer();
+String saveId = server.getWorldPath(net.minecraft.world.level.storage.LevelResource.ROOT).getFileName().toString();
 worldMemory = new WorldMemory(configDir, saveId, settings.memoryEnabled());
 NightwatchCommands.setWorldMemory(worldMemory);
 
@@ -255,7 +256,7 @@ NightwatchCommands.setWorldMemory(null);
 // Memory continues to accumulate across dimension transitions within the same save
 ```
 
-**26.3 API Note:** `getSingleplayerServer().getStorageSource().getFolderName()` returns the level-storage folder name (e.g., "MyWorld"), which is unique per singleplayer world and stable across sessions.
+**26.3 API Note:** `server.getWorldPath(LevelResource.ROOT).getFileName().toString()` returns the level-storage folder name (e.g., "MyWorld"), which is unique per singleplayer world and stable across sessions. `MinecraftServer.storageSource` is protected (no public getter); use `getWorldPath()` with `LevelResource.ROOT` instead.
 
 ## 4. Transcript Privacy
 
