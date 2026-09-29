@@ -64,6 +64,8 @@ Loom's root-cause diagnosis (26.3 EnvironmentAttributeMap codec rebuild) CONFIRM
 - CONFIG (verified key-blind): ai.provider=openai-compatible, ai.endpoint=https://opencode.ai/zen, ai.model=space-bunny-free, ai.api_key PRESENT (operator's key in place — value never read/logged), microphone.enabled=false.
 - SCOPED FREEZE EXCEPTION (Lead-authorized, Runtime tasked): OpenAICompatibleProvider.java — max_tokens 150→600, request timeout 15s→30s, ZERO other behavior change. Reviewer bar: diff-scope check (exactly two literals), compile green, rebuild + Fabric world-creation smoke re-run, this log's record. B3 live on restart with the leak-grep set (Authorization/Bearer/api_key/sk- AND oc_sk_ for this key family) against full session logs. EXPECTED (not bugs): ~12-15s per decision call (off-thread, rare) and occasional empty→silence fail-closed results (on-brand for the presence).
 
+- SCOPED FREEZE EXCEPTION VERIFICATION (740b9d4, Reviewer diff-scope read): PASS — the full diff is EXACTLY two literal changes, both in OpenAICompatibleProvider.java: `max_tokens 150→600` (line 47) and request timeout `Duration.ofSeconds(15)→(30)` (line 49); zero other behavior change; single-file scope (outside engine/). Reviewer's own check-core run at HEAD: green (all three checks — unaffected but verified per Runtime's report). Remaining: Fabric rebuild + world-creation smoke re-run, then client restart and the live session rows.
+
 ### Pending collection
 
 - Per-row results (A1–A8, B1–B4, C1–C9) with timestamps: ☐
