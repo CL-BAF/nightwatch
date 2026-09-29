@@ -23,6 +23,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
 
@@ -37,6 +38,7 @@ public final class NightwatchClient implements ClientModInitializer {
     private int ticks;
     private long watcherVanishAt;
     private LoomHooks loomHooks;
+    private Object currentServer;
 
     private record Scheduled(long due, Action action) {}
 
@@ -68,22 +70,35 @@ public final class NightwatchClient implements ClientModInitializer {
             if (currentWorld != null) {
                 WatcherSpawner.vanishAll(client);
                 currentWorld = null;
+                currentServer = null;
                 scheduled.clear();
                 if (voice != null) { voice.close(); voice = null; }
+                director.reset(System.currentTimeMillis()); // save leave: per-save memory must not bleed
             }
             return;
         }
         if (currentWorld != client.level) {
+            // Same integrated server = an in-save dimension change (Loom enter/exit, nether portal).
+            // Lead ruling: pacing floors survive dimension hops; only a save entry/leave resets them.
+            Object server = client.getSingleplayerServer();
+            boolean sameSave = server != null && server == currentServer;
+            // Entering the Loom is part of the sequence, not a world change: the bridge already
+            // advanced to THREAD and the server has teleported us. Resetting here would collapse
+            // the sequence and immediately eject the player (EXIT_REQUEST). Skip only the reset.
+            boolean enteringLoom = LoomTeleportHandler.LOOM.equals(client.level.dimension())
+                && !(currentWorld instanceof Level previous
+                    && LoomTeleportHandler.LOOM.equals(previous.dimension()));
             if (voice != null) { voice.close(); voice = null; }
             WatcherSpawner.vanishAll(client);
             currentWorld = client.level;
+            currentServer = server;
             scheduled.clear();
             watcherVanishAt = 0L;
             if (loomHooks != null) loomHooks.resetObservations();
-            LoomDirectorBridge.INSTANCE.resetForWorldChange();
+            if (!enteringLoom) LoomDirectorBridge.INSTANCE.resetForWorldChange();
             previousPosition = client.player.position();
             ticks = 0;
-            director.reset(System.currentTimeMillis());
+            if (!sameSave) director.reset(System.currentTimeMillis()); // save entry only
             if (settings.microphoneEnabled()) {
                 voice = new VoiceInput(words -> client.execute(() -> {
                     if (active(client)) director.hear(words, true, scene(client), System.currentTimeMillis());
