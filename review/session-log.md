@@ -38,6 +38,10 @@ Loom's root-cause diagnosis (26.3 EnvironmentAttributeMap codec rebuild) CONFIRM
 - REMAINING LOW-RISK verify-at-fix items (registry refs from a foreign dimension, only the real client can confirm): default_clock "minecraft:the_end" referenced by a non-End dimension (a registry reference — should parse); timelines "#minecraft:in_end" same class. structure_overrides: [] addition to dimension/loom.json is likely REQUIRED, not optional — the vanilla the_void flat preset carries it; without it the LevelStem may fail to parse next once the dimension_type is fixed.
 - Verdict: the proposed fix has high first-try probability; the fix-time relaunch (post-freeze) is the confirmation gate for C2–C9. Fix authorship: Loom, post-session per Lead's call.
 
+### F1 fix — world-creation smoke VERIFICATION (Reviewer, 2026-09-29 ~14:52)
+
+**PASS — verified first-hand from %TEMP%\nw-smoke2.log + run\logs\latest.log (read to the deepest cause: no Caused-by chains exist).** Fabric's smoke (build f43a2b0 @ HEAD 8afaecc; first launch failed on a space-in-name arg split — honestly disclosed, relaunched space-free): integrated server started 14:50:34; fresh world created + entered (Player530 logged in 14:50:38, joined the game; run\saves\New World (1) @ 14:51:36); **the nightwatch:loom dimension is REGISTERED and saving** (`Saving chunks for level 'ServerLevel[New World]'/nightwatch:loom`, 14:50:36) — registry + dimension_type ACCEPTED; **ZERO registry/exception/stop lines, zero non-benign errors** (only the empty-main-source-set warning + offline Realms noise). Loom's two low-risk foreign-registry references (the_end clock + in_end timeline tag) PARSED — both resolved by the smoke. The new standing world-creation smoke gate is satisfied for the f43a2b0/8afaecc tree. Registry gate: GREEN from the evidence hub. Lead's resume call pending; on resume, ALL script rows (A/B/C) are unblocked — the Loom exists at runtime.
+
 ### Pending collection
 
 - Per-row results (A1–A8, B1–B4, C1–C9) with timestamps: ☐
