@@ -72,6 +72,12 @@ Loom's root-cause diagnosis (26.3 EnvironmentAttributeMap codec rebuild) CONFIRM
 - SESSION RELAUNCH (Lead, ~15:53): operator session client launched; boot VERIFIED by Reviewer from %TEMP%\nw-session3.log (created 15:52:01): nightwatch 0.1.0 in the 52-mod list, OpenAL on the operator's headset, sound engine started. The two ERROR lines in the stdout are logback log-rotation contention ("Unable to delete latest.log/debug.log: used by another process") from the killed smoke chain — environmental kill noise, not mod errors; the subsequent boot is clean. Tree clean at fbd303c.
 - B3 leak-grep SCOPE for the whole session (value-blind): %TEMP%\nw-session3.log + run/logs/latest.log + run/logs/debug.log, patterns Authorization/Bearer/api_key/sk-/oc_sk_. EXPECTED (not FAILs): ~12–15s per decision call (off-thread, rare); occasional empty→silence (fail-closed, on-brand); a 30s-timeout→RuleWriter fallback (normal degradation). Cloud config live: Zen / space-bunny-free / operator key (key-blind verified). Session clock starts at the operator's fresh-world join.
 
+### Record correction — 740b9d4 smoke PASS (supersedes the waiver record above)
+
+- Fabric's third smoke attempt PASSED and crossed with Lead's stand-down: verified FIRST-HAND by Reviewer from %TEMP%\nw-smoke5.log (created 15:50:58): integrated server started 15:51:16; the nightwatch:loom dimension registered + saving; Player665 logged in 15:51:17 and joined; ZERO registry/fatal lines; zero non-benign errors (only gradle's run-task termination from the kill + offline Realms noise). The 740b9d4-era tree (jar 100,973 B) therefore has BOTH the concurred waiver reasoning AND an actual passing world-creation smoke — the waiver is moot for this delta; the record is stronger than waived.
+- METHOD FINDING (Fabric, for future smokes): --quickPlaySingleplayer reliably LOADS an existing space-free save id but only auto-creates for some names; spaces break arg tokenization. Deterministic smoke = copy an existing save to a space-free id and load it.
+- STRAY ARTIFACTS (runtime data, not source; freeze forbids writes now): run\saves\NWSload (Fabric's forced-load copy of New World) + run\saves\New World (2) (quickPlay side-effect from the stalled attempts). Reviewer advice: remove both POST-SESSION with Lead's approval (dev artifacts; keeps the operator's world list clean). No action during the session window.
+
 ### Pending collection
 
 - Per-row results (A1–A8, B1–B4, C1–C9) with timestamps: ☐
