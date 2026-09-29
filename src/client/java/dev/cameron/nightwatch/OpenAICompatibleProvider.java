@@ -44,9 +44,9 @@ public final class OpenAICompatibleProvider implements Provider {
         messages.add(message);
         request.add("messages", messages);
         request.addProperty("temperature", 0.7);
-        request.addProperty("max_tokens", 150);
+        request.addProperty("max_tokens", 600);
         HttpRequest call = HttpRequest.newBuilder(URI.create(endpoint + "/v1/chat/completions"))
-            .timeout(Duration.ofSeconds(15))
+            .timeout(Duration.ofSeconds(30))
             .header("Content-Type", "application/json")
             .header("Authorization", "Bearer " + apiKey)
             .POST(HttpRequest.BodyPublishers.ofString(request.toString())).build();
