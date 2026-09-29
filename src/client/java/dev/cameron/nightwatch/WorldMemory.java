@@ -15,8 +15,11 @@ import java.util.regex.Pattern;
 
 /**
  * Bounded, opt-in world memory with privacy sanitization.
- * Stores up to 50 entries per world, sanitized of coordinates, names, items, and API keys.
+ * Stores up to 50 entries per save, sanitized of coordinates, names, items, and API keys.
  * Memory is opt-in via memory.enabled config (default: false).
+ * 
+ * Scoping: Per-save (not per-dimension) to prevent cross-save bleed.
+ * The saveId is derived from the integrated server's storage folder name.
  */
 public final class WorldMemory {
     private static final int MAX_ENTRIES = 50;
@@ -42,9 +45,17 @@ public final class WorldMemory {
 
     public record MemoryEntry(Instant timestamp, String type, String text) {}
 
-    public WorldMemory(Path configDir, String worldId, boolean enabled) {
+    /**
+     * Create WorldMemory scoped by save ID.
+     * @param configDir Minecraft config directory
+     * @param saveId Stable per-save identifier (e.g., integrated server storage folder name)
+     * @param enabled Whether memory is enabled via config
+     */
+    public WorldMemory(Path configDir, String saveId, boolean enabled) {
         this.enabled = enabled;
-        this.memoryFile = configDir.resolve("nightwatch").resolve("worlds").resolve(worldId + ".json");
+        // Scope by save ID to prevent cross-save bleed
+        String safeSaveId = saveId.replaceAll("[^a-zA-Z0-9_-]", "_");
+        this.memoryFile = configDir.resolve("nightwatch").resolve("saves").resolve(safeSaveId + ".json");
         this.entries = load();
     }
 
