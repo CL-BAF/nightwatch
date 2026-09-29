@@ -20,10 +20,12 @@ import net.fabricmc.fabric.api.client.message.v1.ClientSendMessageEvents;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.server.IntegratedServer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.storage.LevelResource;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
 
@@ -33,6 +35,8 @@ public final class NightwatchClient implements ClientModInitializer {
     private Director director;
     private Settings settings;
     private VoiceInput voice;
+    private TypingIndicator typingIndicator;
+    private WorldMemory worldMemory;
     private Object currentWorld;
     private Vec3 previousPosition;
     private int ticks;
@@ -58,9 +62,14 @@ public final class NightwatchClient implements ClientModInitializer {
         director = new Director(writer,
             new Random(), runnable -> Minecraft.getInstance().execute(runnable),
             action -> scheduled.add(new Scheduled(System.currentTimeMillis() + action.delaySeconds() * 1000L, action)));
+        typingIndicator = new TypingIndicator(Minecraft.getInstance());
+        NightwatchCommands.register();
         ClientSendMessageEvents.CHAT.register(message -> {
             Minecraft client = Minecraft.getInstance();
-            if (active(client)) director.hear(message, false, scene(client), System.currentTimeMillis());
+            if (active(client)) {
+                if (worldMemory != null) worldMemory.remember("player", message);
+                director.hear(message, false, scene(client), System.currentTimeMillis());
+            }
         });
         ClientTickEvents.END_CLIENT_TICK.register(this::tick);
     }
@@ -68,19 +77,25 @@ public final class NightwatchClient implements ClientModInitializer {
     private void tick(Minecraft client) {
         if (!active(client)) {
             if (currentWorld != null) {
+                // BRANCH 1 — save leave: stop voice, sink Watchers, flush+drop per-save memory,
+                // cancel any pending typing line, reset pacing floors.
                 WatcherSpawner.vanishAll(client);
                 currentWorld = null;
                 currentServer = null;
                 scheduled.clear();
                 if (voice != null) { voice.close(); voice = null; }
-                director.reset(System.currentTimeMillis()); // save leave: per-save memory must not bleed
+                if (typingIndicator != null) typingIndicator.cancelPending();
+                worldMemory = null;
+                NightwatchCommands.setWorldMemory(null);
+                director.reset(System.currentTimeMillis());
             }
             return;
         }
         if (currentWorld != client.level) {
             // Same integrated server = an in-save dimension change (Loom enter/exit, nether portal).
-            // Lead ruling: pacing floors survive dimension hops; only a save entry/leave resets them.
-            Object server = client.getSingleplayerServer();
+            // Lead ruling: pacing floors and per-save memory survive dimension hops; only a save
+            // entry/leave resets/reinits them.
+            IntegratedServer server = client.getSingleplayerServer();
             boolean sameSave = server != null && server == currentServer;
             // Entering the Loom is part of the sequence, not a world change: the bridge already
             // advanced to THREAD and the server has teleported us. Resetting here would collapse
@@ -98,10 +113,27 @@ public final class NightwatchClient implements ClientModInitializer {
             if (!enteringLoom) LoomDirectorBridge.INSTANCE.resetForWorldChange();
             previousPosition = client.player.position();
             ticks = 0;
-            if (!sameSave) director.reset(System.currentTimeMillis()); // save entry only
+            if (!sameSave) {
+                // BRANCH 1 — save entry: reset floors, bind save-scoped memory.
+                // 26.3 note: MinecraftServer.getStorageSource() is not public; the save folder is
+                // the ROOT world path's file name (contract said getFolderName(); the method is
+                // getWorldPath + LevelResource.ROOT here).
+                String saveId = server != null
+                    ? server.getWorldPath(LevelResource.ROOT).getFileName().toString()
+                    : "unknown";
+                director.reset(System.currentTimeMillis());
+                worldMemory = new WorldMemory(FabricLoader.getInstance().getConfigDir(), saveId, settings.memoryEnabled());
+                NightwatchCommands.setWorldMemory(worldMemory);
+            }
+            // BRANCH 2 — in-save dimension transition: no pacing reset, no memory re-init,
+            // no typing cancel (a pending delayed line may legitimately survive; showThenSend's
+            // liveness re-check + Loom chat suppression are the guards). Voice F2 semantics kept.
             if (settings.microphoneEnabled()) {
                 voice = new VoiceInput(words -> client.execute(() -> {
-                    if (active(client)) director.hear(words, true, scene(client), System.currentTimeMillis());
+                    if (active(client)) {
+                        if (worldMemory != null) worldMemory.remember("voice", words);
+                        director.hear(words, true, scene(client), System.currentTimeMillis());
+                    }
                 }));
                 voice.start();
             }
@@ -111,7 +143,11 @@ public final class NightwatchClient implements ClientModInitializer {
             if (now < item.due()) return false;
             Action action = item.action();
             switch (action.kind()) {
-                case MESSAGE -> client.player.sendSystemMessage(Component.literal("<...> " + action.message()));
+                case MESSAGE -> {
+                    // Typing illusion: action-bar preview then the single final chat line.
+                    typingIndicator.showThenSend(action.message());
+                    if (worldMemory != null) worldMemory.remember("entity", action.message());
+                }
                 case SOUND -> {
                     SoundEffects.play(client, action.soundId());
                     LoomDirectorBridge.INSTANCE.onDirectorAction(action.soundId(), "");
