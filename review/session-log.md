@@ -49,6 +49,14 @@ Loom's root-cause diagnosis (26.3 EnvironmentAttributeMap codec rebuild) CONFIRM
 - Artifact note (Lead, verified): session runs the smoke-rebuild tree — jar 100,972 B @ 14:47:56 from the f43a2b0-era tree (grew from 100,841 B with the dimension JSON fixes) via runClient classpath; HEAD = bac26a3, tree clean.
 - Session clock: row A timings start at the operator's fresh-world join (script step 5: survival / normal difficulty / daylight). ALL rows (A/B/C) unblocked — the Loom exists at runtime. Evidence collection LIVE: per-row PASS/FAIL + timestamps, latest.log, config, audibility verdict, verbatim chat lines. FAILs → Lead as triage notes with owner routing. Freeze holds through the session.
 
+### Config change during session window — operator-directed cloud provider (recorded ~15:00)
+
+- CONSENT BASIS: operator-directed (their key, their game, their machine) — the OPENCOMMS "cloud inference paused pending player consent" clause is satisfied by the operator's own explicit instruction. Direction: OpenCode Zen (OpenAI-compatible), paid qwen3.8-max.
+- RUNTIME CONFIG — verified KEY-BLIND (run/config/nightwatch.properties, gitignored): ai.provider=openai-compatible, ai.endpoint=https://opencode.ai/zen, ai.model=qwen3.8-max, ai.api_key EMPTY (operator supplies directly; the value is never read or logged by the Reviewer), microphone.enabled=false.
+- PRIVACY RULING CORROBORATED against the actual Zen docs: paid models are zero-retention with no training use; the docs' exception list is exactly the free/trial models (incl. NVIDIA security-logged endpoints, OpenAI/Anthropic 30-day retention, contributor-training models). The Lead's free/stealth exclusion is stricter than the docs require (some free stealth models are also zero-retention) — conservative posture endorsed: prompts carry game chat + optional mic transcripts.
+- PRE-FLIGHT (Lead): curl of ProviderWriter's exact prompt shape against Zen before client restart. Known risk: no response_format → markdown-fenced JSON parses to silence (fail-closed but invisible). If fences appear: alternates, else a scoped-freeze-exception Runtime fix (strip fences pre-parse) — Reviewer verification bar: strip-only, fail-closed to silence on unparseable, no other behavior change, check-core green, rebuild + world-creation smoke re-run.
+- On restart: row B3 exercises the LIVE cloud path — key-never-in-logs verified by pattern grep (Authorization/Bearer/api_key/sk-) without ever reading the key value, plus the structural guarantees (header-only, no logging call sites).
+
 ### Pending collection
 
 - Per-row results (A1–A8, B1–B4, C1–C9) with timestamps: ☐
