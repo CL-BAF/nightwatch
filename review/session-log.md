@@ -57,7 +57,19 @@ Loom's root-cause diagnosis (26.3 EnvironmentAttributeMap codec rebuild) CONFIRM
 - PRE-FLIGHT (Lead): curl of ProviderWriter's exact prompt shape against Zen before client restart. Known risk: no response_format → markdown-fenced JSON parses to silence (fail-closed but invisible). If fences appear: alternates, else a scoped-freeze-exception Runtime fix (strip fences pre-parse) — Reviewer verification bar: strip-only, fail-closed to silence on unparseable, no other behavior change, check-core green, rebuild + world-creation smoke re-run.
 - On restart: row B3 exercises the LIVE cloud path — key-never-in-logs verified by pattern grep (Authorization/Bearer/api_key/sk-) without ever reading the key value, plus the structural guarantees (header-only, no logging call sites).
 
+### Pre-flight vs Zen + operator free-model override (~15:05)
+
+- PRE-FLIGHT RESULTS (Lead, key-blind): paid models unavailable on the operator's keys (403 model-access / 402 funds); free tier app-gated (longcat/nemotron 403 "only from within OpenCode" — NOT usable, no spoofing); space-bunny-free 200 OK. Measured with ProviderWriter's exact prompt: max_tokens=150 → EMPTY visible content 3/3 (finish=length — hidden reasoning eats the budget → universal silence); 600 → clean grounded JSON (13s, sample references looking_at=oak_log, lowercase, ≤12 words); 1200 → regresses to empty (reasoning inflation).
+- OPERATOR OVERRIDE (on record): the operator explicitly consented to a free model ("a free model is fine too") — Lead's free-model exclusion ruling is lifted BY OPERATOR OVERRIDE. space-bunny-free is documented zero-retention/no-training by its provider (Zen docs — corroborated by Reviewer's earlier docs search: "Space Bunny Free is a stealth model... zero-retention policy, does not use your data for model training") — the best of the available free set. Mic stays OFF.
+- CONFIG (verified key-blind): ai.provider=openai-compatible, ai.endpoint=https://opencode.ai/zen, ai.model=space-bunny-free, ai.api_key PRESENT (operator's key in place — value never read/logged), microphone.enabled=false.
+- SCOPED FREEZE EXCEPTION (Lead-authorized, Runtime tasked): OpenAICompatibleProvider.java — max_tokens 150→600, request timeout 15s→30s, ZERO other behavior change. Reviewer bar: diff-scope check (exactly two literals), compile green, rebuild + Fabric world-creation smoke re-run, this log's record. B3 live on restart with the leak-grep set (Authorization/Bearer/api_key/sk- AND oc_sk_ for this key family) against full session logs. EXPECTED (not bugs): ~12-15s per decision call (off-thread, rare) and occasional empty→silence fail-closed results (on-brand for the presence).
+
 ### Pending collection
+
+- Per-row results (A1–A8, B1–B4, C1–C9) with timestamps: ☐
+- latest.log (full) + config/nightwatch.properties (key redacted after B3): ☐
+- E1 audibility verdict (clear / faint / inaudible @ 0.25 vol, 30 blocks behind) — decides the gain/position reconciliation: ☐
+- Verbatim `<...>` chat lines received: ☐
 
 - Per-row results (A1–A8, B1–B4, C1–C9) with timestamps: ☐
 - latest.log (full) + config/nightwatch.properties (key redacted after B3): ☐
