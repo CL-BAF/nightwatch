@@ -78,6 +78,13 @@ Loom's root-cause diagnosis (26.3 EnvironmentAttributeMap codec rebuild) CONFIRM
 - METHOD FINDING (Fabric, for future smokes): --quickPlaySingleplayer reliably LOADS an existing space-free save id but only auto-creates for some names; spaces break arg tokenization. Deterministic smoke = copy an existing save to a space-free id and load it.
 - STRAY ARTIFACTS (runtime data, not source; freeze forbids writes now): run\saves\NWSload (Fabric's forced-load copy of New World) + run\saves\New World (2) (quickPlay side-effect from the stalled attempts). Reviewer advice: remove both POST-SESSION with Lead's approval (dev artifacts; keeps the operator's world list clean). No action during the session window.
 
+### Session boundary record (~15:56) — OFFICIAL session clock definition
+
+- SUPERSEDE note: the 740b9d4 smoke PASS (verified above) satisfies the smoke gate by EXECUTION, not exemption — Lead's waiver ruling is superseded and closed.
+- Commingled-log boundary (CRITICAL for evidence reads): two clients shared run\logs 15:52–15:56 — ServerLevel[New World]/Player665 lines are Fabric's smoke5 (killed by Lead at ~15:55:5x, PID 22460, after outliving its exit window); Player368 lines (15:52:5x–15:55:58, one early 'hello?' + disconnect) were the operator's DELETED throwaway world. EVERYTHING in run\logs BEFORE ~15:56 is setup noise — not session evidence.
+- CLEAN SLATE: the operator wiped run\saves entirely (all dev worlds incl. Fabric's NWSload artifact gone — the deletion request is moot); single client alive (PID 40024, plain runClient, stdout %TEMP%\nw-session3.log); operator at the title screen creating the official fresh world (script step 5: survival / normal / daylight).
+- OFFICIAL SESSION CLOCK: starts at the operator's FRESH-WORLD JOIN timestamp (T0). All row evidence in run\logs counts ONLY from T0 forward; pre-T0 lines are excluded by this boundary. B3 leak-grep applies to nw-session3.log + run\logs from T0 forward, value-blind (Authorization/Bearer/api_key/sk-/oc_sk_).
+
 ### Pending collection
 
 - Per-row results (A1–A8, B1–B4, C1–C9) with timestamps: ☐
