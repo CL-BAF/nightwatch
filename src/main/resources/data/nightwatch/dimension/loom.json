@@ -4,11 +4,13 @@
     "type": "minecraft:flat",
     "settings": {
       "layers": [
-        { "block": "minecraft:white_wool", "height": 3 }
+        { "block": "minecraft:light", "height": 1 },
+        { "block": "minecraft:white_wool", "height": 2 }
       ],
       "biome": "minecraft:the_void",
       "features": false,
-      "lakes": false
+      "lakes": false,
+      "structure_overrides": []
     }
   }
 }
