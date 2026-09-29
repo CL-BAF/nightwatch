@@ -42,6 +42,13 @@ Loom's root-cause diagnosis (26.3 EnvironmentAttributeMap codec rebuild) CONFIRM
 
 **PASS — verified first-hand from %TEMP%\nw-smoke2.log + run\logs\latest.log (read to the deepest cause: no Caused-by chains exist).** Fabric's smoke (build f43a2b0 @ HEAD 8afaecc; first launch failed on a space-in-name arg split — honestly disclosed, relaunched space-free): integrated server started 14:50:34; fresh world created + entered (Player530 logged in 14:50:38, joined the game; run\saves\New World (1) @ 14:51:36); **the nightwatch:loom dimension is REGISTERED and saving** (`Saving chunks for level 'ServerLevel[New World]'/nightwatch:loom`, 14:50:36) — registry + dimension_type ACCEPTED; **ZERO registry/exception/stop lines, zero non-benign errors** (only the empty-main-source-set warning + offline Realms noise). Loom's two low-risk foreign-registry references (the_end clock + in_end timeline tag) PARSED — both resolved by the smoke. The new standing world-creation smoke gate is satisfied for the f43a2b0/8afaecc tree. Registry gate: GREEN from the evidence hub. Lead's resume call pending; on resume, ALL script rows (A/B/C) are unblocked — the Loom exists at runtime.
 
+### SESSION RESUMED — 2026-09-29 14:52 (Lead), F1 formally CLOSED
+
+- F1 CLOSED: Lead's resume on the smoke gate; Reviewer's formal log verification recorded above (world created+entered, nightwatch:loom registered+saving, zero registry/exception/stop lines, foreign clock/tag refs parsed — read to the deepest cause: no Caused-by chains). The world-creation smoke gate (new standing, pre-flight step 2b) is satisfied for the f43a2b0-era tree.
+- Resumed-session boot verified by Reviewer from %TEMP%\nw-session2.log (created 14:52:59): nightwatch 0.1.0 in the 52-mod list, OpenAL initialized on the operator's G522 headset, sound engine started, no registry errors. run\logs\latest.log rotated fresh at 14:53:05 (the session log; growing).
+- Artifact note (Lead, verified): session runs the smoke-rebuild tree — jar 100,972 B @ 14:47:56 from the f43a2b0-era tree (grew from 100,841 B with the dimension JSON fixes) via runClient classpath; HEAD = bac26a3, tree clean.
+- Session clock: row A timings start at the operator's fresh-world join (script step 5: survival / normal difficulty / daylight). ALL rows (A/B/C) unblocked — the Loom exists at runtime. Evidence collection LIVE: per-row PASS/FAIL + timestamps, latest.log, config, audibility verdict, verbatim chat lines. FAILs → Lead as triage notes with owner routing. Freeze holds through the session.
+
 ### Pending collection
 
 - Per-row results (A1–A8, B1–B4, C1–C9) with timestamps: ☐
